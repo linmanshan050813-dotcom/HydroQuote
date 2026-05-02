@@ -9,14 +9,24 @@
 
 ---
 
-## 🎬 Method 1: Automated Demo (Recommended)
+## 🎬 Method 1: One-Click Demo (Easiest!)
+
+### Windows Users - Double-click this file:
+```
+start_demo.bat
+```
+This will automatically open two terminal windows and start both servers!
+
+---
+
+## 🎬 Method 2: Manual Start (Two Terminals)
 
 ### Step 1: Open TWO Terminal Windows
 
 **Terminal 1 - Backend API:**
 ```bash
 cd "c:/Users/Jeff Chang/Desktop/OIOteam_IBM_hackathon"
-python app/main.py
+python start_backend.py
 ```
 
 You should see:
@@ -62,7 +72,7 @@ The dashboard provides:
 
 ---
 
-## 🎬 Method 2: Manual Testing
+## 🎬 Method 3: Manual Testing
 
 ### Option A: Test Backend API Directly
 
@@ -297,10 +307,13 @@ Press `Ctrl+C`
 
 **Ready to Demo!** 🎉
 
-Just run these two commands in separate terminals:
+**Option 1 - One-Click (Windows):**
+Double-click `start_demo.bat`
+
+**Option 2 - Manual (Two Terminals):**
 ```bash
 # Terminal 1
-python app/main.py
+python start_backend.py
 
 # Terminal 2
 python serve_frontend.py
