@@ -217,4 +217,35 @@ marimo/_lsp/
 __marimo__/
 
 # Streamlit
+# ============================================
+# HydroQuote AI - Sensitive Configuration
+# ============================================
+# Environment files with secrets
+.env
+.env.local
+.env.*.local
+*.env
+
+# API Keys and Credentials
+*_api_key*
+*_secret*
+*credentials*
+secrets/
+config/secrets/
+
+# Generated outputs (may contain customer data)
+outputs/
+temp/
+downloads/
+*.pdf
+*.docx
+
+# Logs (may contain sensitive information)
+logs/
+*.log
+
+# Database files (if added later)
+*.db
+*.sqlite
+*.sqlite3
 .streamlit/secrets.toml

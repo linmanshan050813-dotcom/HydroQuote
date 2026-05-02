@@ -1,0 +1,81 @@
+# HydroQuote AI - Docker Compose Configuration
+# For local development and testing
+
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hydroquote-api
+    ports:
+      - "8000:8000"
+    
+    # Load environment variables from .env file
+    # IMPORTANT: Never commit .env file to Git!
+    env_file:
+      - .env
+    
+    # Alternative: Specify environment variables directly
+    # Uncomment and use this method if you prefer
+    # environment:
+    #   - WATSONX_API_KEY=${WATSONX_API_KEY}
+    #   - WATSONX_PROJECT_ID=${WATSONX_PROJECT_ID}
+    #   - WATSONX_URL=${WATSONX_URL:-https://us-south.ml.cloud.ibm.com}
+    #   - WATSONX_MODEL=${WATSONX_MODEL:-ibm/granite-13b-chat-v2}
+    #   - APP_ENV=${APP_ENV:-development}
+    #   - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    
+    volumes:
+      # Mount prompt templates (read-only)
+      - ./app/prompts:/app/app/prompts:ro
+      
+      # Mount output directories (read-write)
+      - ./outputs:/app/outputs
+      - ./temp:/app/temp
+      
+      # For development: mount source code for hot reload
+      # Uncomment for development mode
+      # - ./app:/app/app
+    
+    restart: unless-stopped
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    
+    # Resource limits (adjust based on your needs)
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
+    
+    # Logging configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+# Optional: Add networks for better isolation
+networks:
+  default:
+    name: hydroquote-network
+
+# Optional: Add volumes for persistent data
+volumes:
+  outputs:
+    driver: local
+  temp:
+    driver: local
+
+# Made with Bob
