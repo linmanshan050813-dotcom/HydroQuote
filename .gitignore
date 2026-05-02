@@ -243,6 +243,7 @@ downloads/
 # Logs (may contain sensitive information)
 logs/
 *.log
+bob_sessions/
 
 # Database files (if added later)
 *.db
