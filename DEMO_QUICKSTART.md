@@ -5,6 +5,20 @@
 ### Prerequisites Check
 ✅ Python 3.11+ installed  
 ✅ Dependencies installed (`pip install -r requirements.txt`)  
+
+---
+
+## ⚠️ IMPORTANT: Module Import Fix
+
+**If you see this error:**
+```
+ModuleNotFoundError: No module named 'app'
+```
+
+**Solution:** Use `python start_backend.py` instead of `python app/main.py`
+
+The `start_backend.py` script properly sets up the Python path to avoid import errors.
+
 ✅ `.env` file configured with Watson NLU credentials
 
 ---
