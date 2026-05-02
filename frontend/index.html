@@ -376,6 +376,39 @@
             </div>
         </div>
 
+        <!-- File Upload & Pricing Analysis Section -->
+        <div class="test-section">
+            <h2>📄 Project Report Analysis & Pricing</h2>
+            <p style="color: #666; margin-bottom: 20px;">
+                Upload your project report (TXT, PDF, or DOCX format) to receive an AI-powered pricing estimate
+                for your hydro turbine installation. Maximum file size: 10MB.
+            </p>
+            
+            <div style="margin-bottom: 20px;">
+                <input type="file" id="fileInput" accept=".txt,.pdf,.docx,.doc" style="display: none;" onchange="handleFileSelect(event)">
+                <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+                    📁 Choose File
+                </button>
+                <span id="fileName" style="margin-left: 15px; color: #666; font-style: italic;">No file selected</span>
+            </div>
+            
+            <button class="btn btn-success" id="uploadBtn" onclick="uploadFile()" disabled>
+                🚀 Analyze & Get Pricing
+            </button>
+            
+            <div id="uploadResults" class="test-results" style="margin-top: 20px; display: none;">
+                <div class="test-result-item test-info">
+                    Upload a file to see the analysis results...
+                </div>
+            </div>
+            
+            <div id="pricingDisplay" style="margin-top: 20px; display: none;">
+                <h3 style="color: #667eea; margin-bottom: 15px;">💰 Pricing Estimate</h3>
+                <div id="pricingContent" style="background: #f8f9fa; padding: 20px; border-radius: 10px;">
+                </div>
+            </div>
+        </div>
+
         <!-- Testing Section -->
         <div class="test-section">
             <h2>🧪 API Testing Dashboard</h2>
@@ -652,10 +685,176 @@
         // Clear results
         function clearResults() {
             testCount = 0;
-            document.getElementById('testResults').innerHTML = 
+            document.getElementById('testResults').innerHTML =
                 '<div class="test-result-item test-info">Test results cleared. Ready for new tests...</div>';
-            document.getElementById('jsonViewer').textContent = 
+            document.getElementById('jsonViewer').textContent =
                 'No response yet. Run a test to see the API response here.';
+        }
+
+        // ============================================
+        // File Upload & Pricing Analysis Functions
+        // ============================================
+        let selectedFile = null;
+
+        /**
+         * Handle file selection from input
+         */
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                selectedFile = file;
+                document.getElementById('fileName').textContent = `${file.name} (${(file.size / 1024).toFixed(2)} KB)`;
+                document.getElementById('fileName').style.color = '#10b981';
+                document.getElementById('uploadBtn').disabled = false;
+            } else {
+                selectedFile = null;
+                document.getElementById('fileName').textContent = 'No file selected';
+                document.getElementById('fileName').style.color = '#666';
+                document.getElementById('uploadBtn').disabled = true;
+            }
+        }
+
+        /**
+         * Upload file and get pricing analysis
+         */
+        async function uploadFile() {
+            if (!selectedFile) {
+                alert('Please select a file first');
+                return;
+            }
+
+            const uploadBtn = document.getElementById('uploadBtn');
+            const uploadResults = document.getElementById('uploadResults');
+            const pricingDisplay = document.getElementById('pricingDisplay');
+            
+            // Show loading state
+            uploadBtn.disabled = true;
+            uploadBtn.innerHTML = '⏳ Analyzing...';
+            uploadResults.style.display = 'block';
+            uploadResults.innerHTML = '<div class="test-result-item test-info">📤 Uploading file and analyzing content...</div>';
+            pricingDisplay.style.display = 'none';
+
+            try {
+                // Prepare and send file
+                const formData = new FormData();
+                formData.append('file', selectedFile);
+
+                const response = await fetch(`${API_BASE_URL}/api/analyze-project`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Display success message
+                    uploadResults.innerHTML = `
+                        <div class="test-result-item test-pass">
+                            <strong>✓ Analysis Complete!</strong><br>
+                            <small>${new Date().toLocaleTimeString()}</small><br>
+                            File: ${data.filename}<br>
+                            Text extracted: ${data.text_length} characters
+                        </div>
+                    `;
+
+                    // Display pricing information
+                    const analysis = data.analysis;
+                    const pricing = analysis.pricing_breakdown;
+                    
+                    pricingDisplay.style.display = 'block';
+                    
+                    // Build missing criteria section if present
+                    let missingCriteriaHTML = '';
+                    if (analysis.missing_criteria && analysis.missing_criteria.length > 0) {
+                        missingCriteriaHTML = `
+                            <div style="background: #fef3c7; padding: 15px; border-radius: 8px; border-left: 4px solid #f59e0b; margin-bottom: 20px;">
+                                <h4 style="color: #d97706; margin-bottom: 10px;">⚠️ Missing Information</h4>
+                                <p style="margin: 5px 0; color: #92400e; font-weight: bold;">The following criteria were not found in your report:</p>
+                                ${analysis.missing_criteria.map(item => `<p style="margin: 5px 0 5px 20px; color: #92400e;">• ${item}</p>`).join('')}
+                                <p style="margin: 10px 0 5px 0; color: #92400e; font-style: italic;">Providing this information will improve estimate accuracy.</p>
+                            </div>
+                        `;
+                    }
+                    
+                    document.getElementById('pricingContent').innerHTML = `
+                        ${missingCriteriaHTML}
+                        
+                        <div style="margin-bottom: 20px;">
+                            <h4 style="color: #667eea; margin-bottom: 10px;">Project Details</h4>
+                            <div class="info-row">
+                                <span class="info-label">Project Type</span>
+                                <span class="info-value">${analysis.project_type}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Estimated Capacity</span>
+                                <span class="info-value">${analysis.estimated_capacity_kw} kW</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Timeline</span>
+                                <span class="info-value">${analysis.timeline_estimate}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Confidence Level</span>
+                                <span class="info-value" style="color: ${analysis.confidence_level === 'High' ? '#10b981' : analysis.confidence_level === 'Medium' ? '#f59e0b' : '#ef4444'}; font-weight: bold;">${analysis.confidence_level}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Data Completeness</span>
+                                <span class="info-value" style="font-weight: bold;">${analysis.data_completeness || 'N/A'}</span>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-bottom: 20px;">
+                            <h4 style="color: #667eea; margin-bottom: 10px;">Cost Breakdown</h4>
+                            <div class="info-row">
+                                <span class="info-label">Equipment Cost</span>
+                                <span class="info-value" style="color: #10b981; font-weight: bold;">${pricing.equipment_cost}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Installation Cost</span>
+                                <span class="info-value" style="color: #10b981; font-weight: bold;">${pricing.installation_cost}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Engineering Cost</span>
+                                <span class="info-value" style="color: #10b981; font-weight: bold;">${pricing.engineering_cost}</span>
+                            </div>
+                            <div class="info-row" style="border-top: 2px solid #667eea; padding-top: 15px; margin-top: 10px;">
+                                <span class="info-label" style="font-size: 1.2em; font-weight: bold;">Total Estimated Cost</span>
+                                <span class="info-value" style="color: #667eea; font-size: 1.3em; font-weight: bold;">${pricing.total_estimated_cost}</span>
+                            </div>
+                        </div>
+                        
+                        <div style="background: #fef3c7; padding: 15px; border-radius: 8px; border-left: 4px solid #f59e0b;">
+                            <h4 style="color: #d97706; margin-bottom: 10px;">⚠️ Important Notes</h4>
+                            ${analysis.notes.map(note => `<p style="margin: 5px 0; color: #92400e;">• ${note}</p>`).join('')}
+                        </div>
+                    `;
+
+                    // Display JSON response
+                    displayJSON(data);
+
+                } else {
+                    uploadResults.innerHTML = `
+                        <div class="test-result-item test-fail">
+                            <strong>✗ Analysis Failed</strong><br>
+                            <small>${new Date().toLocaleTimeString()}</small><br>
+                            Error: ${data.detail || 'Unknown error'}
+                        </div>
+                    `;
+                }
+
+            } catch (error) {
+                uploadResults.innerHTML = `
+                    <div class="test-result-item test-fail">
+                        <strong>✗ Upload Failed</strong><br>
+                        <small>${new Date().toLocaleTimeString()}</small><br>
+                        Error: ${error.message}
+                    </div>
+                `;
+            } finally {
+                // Reset button
+                uploadBtn.disabled = false;
+                uploadBtn.innerHTML = '🚀 Analyze & Get Pricing';
+            }
         }
     </script>
 </body>

@@ -5,11 +5,19 @@ Run this alongside the FastAPI backend
 import http.server
 import socketserver
 import os
+import sys
+import codecs
 import webbrowser
 from pathlib import Path
 
+# Fix encoding for Windows
+if sys.platform == 'win32':
+    sys.stdout = codecs.getwriter('utf-8')(sys.stdout.buffer, 'strict')
+    sys.stderr = codecs.getwriter('utf-8')(sys.stderr.buffer, 'strict')
+
 PORT = 3000
 DIRECTORY = "frontend"
+MAX_PORT_ATTEMPTS = 10
 
 class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
@@ -43,17 +51,37 @@ def main():
     print("\nPress Ctrl+C to stop the server\n")
     print("=" * 60)
     
-    # Create server
-    with socketserver.TCPServer(("", PORT), MyHTTPRequestHandler) as httpd:
+    # Try to create server, handle port conflicts
+    port = PORT
+    httpd = None
+    
+    for attempt in range(MAX_PORT_ATTEMPTS):
+        try:
+            httpd = socketserver.TCPServer(("", port), MyHTTPRequestHandler)
+            break
+        except OSError as e:
+            if attempt < MAX_PORT_ATTEMPTS - 1:
+                print(f"\n⚠️  Port {port} is in use, trying {port + 1}...")
+                port += 1
+            else:
+                print(f"\n❌ Error: Could not find available port after {MAX_PORT_ATTEMPTS} attempts")
+                print(f"   Ports {PORT}-{port} are all in use")
+                print(f"\n   Try closing other applications or use a different port")
+                return
+    
+    if httpd:
+        print(f"\n✓ Server started on port {port}")
+        
         # Open browser
         try:
-            webbrowser.open(f"http://localhost:{PORT}")
-            print(f"\n✓ Browser opened automatically")
+            webbrowser.open(f"http://localhost:{port}")
+            print(f"✓ Browser opened automatically")
         except:
-            print(f"\n⚠️  Could not open browser automatically")
-            print(f"   Please open: http://localhost:{PORT}")
+            print(f"⚠️  Could not open browser automatically")
+            print(f"   Please open: http://localhost:{port}")
         
-        print(f"\n🚀 Server is running...")
+        print(f"\n🚀 Server is running on http://localhost:{port}")
+        print(f"   Press Ctrl+C to stop\n")
         
         try:
             httpd.serve_forever()
