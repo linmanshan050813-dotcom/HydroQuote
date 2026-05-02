@@ -9,6 +9,7 @@ import sys
 import codecs
 import webbrowser
 from pathlib import Path
+from urllib.parse import urlparse, unquote
 
 
 class ThreadingHTTPServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
@@ -28,6 +29,18 @@ MAX_PORT_ATTEMPTS = 10
 class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=DIRECTORY, **kwargs)
+
+    def translate_path(self, path):
+        """
+        Serve frontend assets from frontend/, and map /hydroturbine_image/*
+        to the project-root hydroturbine_image/ directory.
+        """
+        parsed = urlparse(path).path
+        clean_path = unquote(parsed).lstrip("/")
+        if clean_path.startswith("hydroturbine_image/"):
+            rel = clean_path[len("hydroturbine_image/"):]
+            return str((Path.cwd() / "hydroturbine_image" / rel).resolve())
+        return super().translate_path(path)
     
     def end_headers(self):
         # Add CORS headers

@@ -16,7 +16,7 @@ HydroQuote AI is an intelligent quotation system that automates the hydro turbin
 
 ## 🏗️ System Architecture
 
-### Database-Free LLM Architecture
+### Prompt-Driven LLM Architecture
 
 ```mermaid
 graph TB
@@ -45,14 +45,14 @@ graph TB
 ```
 
 **Key Design Principles:**
-- ✅ **No Database Required** - All logic in LLM prompts
+- ✅ **Prompt-Centric Logic** - Rules and calculations are managed in prompts
 - ✅ **Stateless Architecture** - Each request is independent
 - ✅ **Embedded Pricing Rules** - Formulas hardcoded in prompts
 - ✅ **Single API Call** - Complete quotation in one request
 
 ### Five-Prompt LLM Pipeline
 
-All processing is handled through specialized LLM prompts - no database queries or lookups required.
+All processing is handled through specialized LLM prompts for a streamlined stateless workflow.
 
 #### 1. Parameter Extraction Prompt
 **Input**: Raw customer text or uploaded document
@@ -91,7 +91,7 @@ All processing is handled through specialized LLM prompts - no database queries 
 **Output**: Commercial quotation with markup
 
 **Embedded Rules**:
-- 240% markup application
+- Commercial markup application
 - Risk reserve calculation (8% after-sales)
 - Professional quote formatting
 
@@ -262,7 +262,7 @@ Where:
 Commercial Quotation = Internal Cost × 2.40
 ```
 
-This 240% markup covers:
+This markup strategy covers:
 - Profit margin
 - Negotiation buffer
 - Exchange rate fluctuation
@@ -289,7 +289,7 @@ python-multipart>=0.0.6
 jinja2>=3.1.2
 ```
 
-**Note**: No database dependencies required - all logic is embedded in LLM prompts.
+**Note**: Core business logic is embedded in LLM prompts.
 
 ---
 
@@ -362,7 +362,7 @@ Output format:
 Role: Commercial Quotation Manager
 Task: Generate customer-facing quotation
 Input: Internal cost price
-Output: Commercial quotation with 240% markup
+Output: Commercial quotation with markup
 
 Components:
 - Apply commercial markup
@@ -444,7 +444,7 @@ LOG_LEVEL=INFO
 API_PORT=8000
 ```
 
-**Note**: No database configuration needed - system is completely stateless.
+**Note**: No persistent data service configuration is required; the system is stateless.
 
 ---
 
@@ -539,7 +539,7 @@ POST /api/v1/generate-pi
 
 ### How Pricing Rules Are Embedded
 
-Instead of database tables, all pricing logic is embedded directly in LLM prompts:
+All pricing logic is embedded directly in LLM prompts:
 
 **Example: Cost Calculation Prompt Structure**
 ```
@@ -578,7 +578,7 @@ OUTPUT: Return JSON with itemized breakdown
 ```
 
 **Benefits**:
-- ✅ No database queries or lookups
+- ✅ No external table lookups
 - ✅ Rules visible and auditable in prompts
 - ✅ Easy to update by editing prompt templates
 - ✅ Consistent calculations every time
@@ -650,7 +650,7 @@ Standard 50Hz frequency and 6.3kV voltage."
 - **Main Equipment Total**: USD 346,300
 - Project Additional Cost: USD 50,000
 - Internal Cost (with 8% after-sales): USD 427,604
-- **Commercial Quote (240%)**: USD 1,026,250
+- **Commercial Quote**: USD 1,026,250
 
 **Step 5: PI Generation**
 Professional Proforma Invoice with:
@@ -664,10 +664,10 @@ Professional Proforma Invoice with:
 
 ## 🔍 Architecture Benefits & Considerations
 
-### ✅ Advantages of Database-Free Design
+### ✅ Architecture Advantages
 
 1. **Simplicity**
-   - No database setup, migrations, or maintenance
+   - Minimal infrastructure setup and maintenance
    - Single container deployment
    - Easier to scale horizontally
    - Reduced infrastructure complexity
@@ -675,17 +675,17 @@ Professional Proforma Invoice with:
 2. **Flexibility**
    - Pricing rules updated by editing prompt templates
    - No schema migrations needed
-   - Instant rule changes without database updates
+   - Instant rule changes through prompt updates
    - Easy to version control prompts
 
 3. **Transparency**
    - All logic visible in prompt templates
    - Easy to audit and understand
-   - No hidden database state
+   - Clear rule traceability
    - Clear pricing calculations
 
 4. **Cost Efficiency**
-   - No database hosting costs
+   - Lower infrastructure costs
    - Reduced infrastructure complexity
    - Pay only for LLM API calls
    - Lower operational overhead
@@ -733,7 +733,7 @@ Professional Proforma Invoice with:
 
 3. **Quote Comparison Tool**
    - Load 2-3 saved quotes and compare
-   - Still no database, just file operations
+   - File-based comparison workflow
 
 4. **Multi-Language Support**
    - Chinese/English prompt variants
@@ -777,7 +777,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Project Lead: [Name]
 - AI/ML Engineer: [Name]
 - Backend Developer: [Name]
-- Database Architect: [Name]
+- Solution Architect: [Name]
 
 ---
 
@@ -794,19 +794,19 @@ For questions or support:
 
 - IBM watsonx.ai for AI capabilities
 - FastAPI framework
-- PostgreSQL database
+- Open source ecosystem
 - Docker containerization
 - Open source community
 
 ---
 
 **Last Updated**: 2024-05-02
-**Version**: 2.0.0 - Database-Free Architecture
+**Version**: 2.0.0 - Prompt-Driven Architecture
 **Status**: Ready for Implementation
 
 ---
 
 ## 📖 Additional Documentation
 
-- [`ARCHITECTURE_REDESIGN_PLAN.md`](ARCHITECTURE_REDESIGN_PLAN.md) - Detailed implementation plan for database-free architecture
+- [`ARCHITECTURE_REDESIGN_PLAN.md`](ARCHITECTURE_REDESIGN_PLAN.md) - Detailed implementation plan for the prompt-driven architecture
 - [`Planning Docs/`](Planning Docs/) - Original Chinese planning documents with pricing rules and workflow design

@@ -4,15 +4,17 @@ FastAPI application with secure configuration management
 """
 from fastapi import FastAPI, Depends, HTTPException, status, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 import logging
 from typing import Dict, Any, Union
 import PyPDF2
 import docx
+from pptx import Presentation
 import io
 import re
 import random
 from datetime import datetime
+from docx.shared import Pt
 
 from app.core.config import get_settings, Settings
 
@@ -146,7 +148,7 @@ async def config_info(settings: Settings = Depends(get_settings)) -> Dict[str, A
 def extract_text_from_file(file_content: bytes, filename: str) -> str:
     """
     Extract text from uploaded file based on file type
-    Supports: TXT, PDF, DOCX
+    Supports: TXT, PDF, DOCX, PPTX
     """
     file_extension = filename.lower().split('.')[-1]
     
@@ -172,6 +174,24 @@ def extract_text_from_file(file_content: bytes, filename: str) -> str:
             for paragraph in doc.paragraphs:
                 text += paragraph.text + "\n"
             return text
+
+        elif file_extension == 'pptx':
+            # PowerPoint document
+            ppt_file = io.BytesIO(file_content)
+            presentation = Presentation(ppt_file)
+            text = ""
+            for slide in presentation.slides:
+                for shape in slide.shapes:
+                    if hasattr(shape, "text") and shape.text:
+                        text += shape.text + "\n"
+            return text
+
+        elif file_extension == 'ppt':
+            # Legacy binary PPT format is not reliably supported by python-pptx
+            raise ValueError(
+                "Legacy .ppt format is not supported for text extraction. "
+                "Please re-save the file as .pptx and upload again."
+            )
         
         else:
             raise ValueError(f"Unsupported file type: {file_extension}")
@@ -307,7 +327,7 @@ async def analyze_project_report(
     """
     Upload a project report and receive an AI-powered pricing estimate
     
-    Accepts: TXT, PDF, DOCX files (max 10MB)
+    Accepts: TXT, PDF, DOCX, PPTX, PPT files (max 10MB)
     Returns: Detailed pricing breakdown and project analysis
     """
     # Validate filename
@@ -318,7 +338,7 @@ async def analyze_project_report(
         )
     
     # Validate file type
-    allowed_extensions = ['txt', 'pdf', 'docx', 'doc']
+    allowed_extensions = ['txt', 'pdf', 'docx', 'doc', 'pptx', 'ppt']
     file_extension = file.filename.lower().split('.')[-1]
     
     if file_extension not in allowed_extensions:
@@ -369,6 +389,136 @@ async def analyze_project_report(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to analyze project report: {str(e)}"
+        )
+
+
+@app.post("/api/generate-proforma-invoice", tags=["Analysis"])
+async def generate_proforma_invoice(payload: Dict[str, Any]) -> StreamingResponse:
+    """
+    Generate a Proforma Invoice Word document from analysis result.
+    The document structure follows the provided quotation sample style.
+    """
+    try:
+        analysis = payload.get("analysis") or {}
+        pricing = analysis.get("pricing_breakdown") or {}
+        turbine_meta = payload.get("turbine_meta") or {}
+        source_filename = payload.get("filename") or "inquiry.txt"
+
+        project_type = analysis.get("project_type", "Hydro Turbine Project")
+        capacity_kw = analysis.get("estimated_capacity_kw", "N/A")
+        timeline = analysis.get("timeline_estimate", "TBD")
+        confidence = analysis.get("confidence_level", "N/A")
+        turbine_name = turbine_meta.get("name", "Hydro Turbine")
+        qty = "1"
+
+        def to_amount(value: Any) -> float:
+            s = str(value or "0").replace("$", "").replace(",", "").strip()
+            try:
+                return float(s)
+            except ValueError:
+                return 0.0
+
+        # Main-equipment costing base: use equipment_cost as pseudo database base.
+        equipment_base = to_amount(pricing.get("equipment_cost", "$0"))
+        if equipment_base <= 0:
+            # Fallback if upstream data is absent: 70% of total as equipment base.
+            equipment_base = to_amount(pricing.get("total_estimated_cost", "$0")) * 0.7
+
+        # Split main equipment into 5 mandatory items.
+        # This keeps the quotation structure stable and matches HydroQuote AI scope definition.
+        turbine_cost = round(equipment_base * 0.46, 2)
+        generator_avr_cost = round(equipment_base * 0.29, 2)
+        governor_cost = round(equipment_base * 0.11, 2)
+        inlet_valve_cost = round(equipment_base * 0.08, 2)
+        automation_cost = round(max(0.0, equipment_base - turbine_cost - generator_avr_cost - governor_cost - inlet_valve_cost), 2)
+        main_total = round(turbine_cost + generator_avr_cost + governor_cost + inlet_valve_cost + automation_cost, 2)
+
+        installation_cost = to_amount(pricing.get("installation_cost", "$0"))
+        engineering_cost = to_amount(pricing.get("engineering_cost", "$0"))
+        grand_total = to_amount(pricing.get("total_estimated_cost", "$0"))
+
+        doc = docx.Document()
+
+        doc.add_paragraph(f"Date: {datetime.utcnow().strftime('%Y-%m-%d')}")
+        title = doc.add_paragraph("Proforma invoice")
+        if title.runs:
+            title.runs[0].bold = True
+            title.runs[0].font.size = Pt(16)
+
+        doc.add_paragraph("")
+        doc.add_paragraph("Requisites of the Supplier:")
+        doc.add_paragraph("Name of supplier: HydroQuote AI Co., Ltd.")
+        doc.add_paragraph("Registration number: N/A")
+        doc.add_paragraph("Website: https://hydroquote-ai.example.com")
+        doc.add_paragraph("Address: Industrial Equipment Zone")
+        doc.add_paragraph("E-mail: support@hydroquote-ai.com")
+        doc.add_paragraph("Tel: +1 (800) 888-0000")
+        doc.add_paragraph("Bank details: Available upon confirmation")
+        doc.add_paragraph("")
+        doc.add_paragraph("EQUIPMENT:")
+
+        table = doc.add_table(rows=1, cols=5)
+        table.style = "Table Grid"
+        headers = ["Description", "HS CODE", "Qty", "Unit price", "Total(USD)"]
+        for i, h in enumerate(headers):
+            cell = table.rows[0].cells[i]
+            cell.text = h
+            if cell.paragraphs and cell.paragraphs[0].runs:
+                cell.paragraphs[0].runs[0].bold = True
+
+        rows = [
+            [f"Hydro Turbine ({turbine_name})", "8410120000", qty, f"{turbine_cost:,.2f}", f"{turbine_cost:,.2f}"],
+            ["Generator and Exciter / AVR", "8502390010", qty, f"{generator_avr_cost:,.2f}", f"{generator_avr_cost:,.2f}"],
+            ["Speed Governor", "9032899090", qty, f"{governor_cost:,.2f}", f"{governor_cost:,.2f}"],
+            ["Inlet Valve", "8481804090", qty, f"{inlet_valve_cost:,.2f}", f"{inlet_valve_cost:,.2f}"],
+            ["Automation System (Standard PLC Automation)", "8537109090", qty, f"{automation_cost:,.2f}", f"{automation_cost:,.2f}"],
+            ["MAIN EQUIPMENT TOTAL", "", "", "", f"{main_total:,.2f}"],
+            ["Installation service (excluded from main equipment scope)", "9954990000", qty, f"{installation_cost:,.2f}", f"{installation_cost:,.2f}"],
+            ["Engineering service (excluded from main equipment scope)", "9983990000", qty, f"{engineering_cost:,.2f}", f"{engineering_cost:,.2f}"],
+            ["GRAND TOTAL", "", "", "", f"{grand_total:,.2f}"]
+        ]
+        for row_data in rows:
+            cells = table.add_row().cells
+            for i, value in enumerate(row_data):
+                cells[i].text = str(value)
+
+        doc.add_paragraph("")
+        doc.add_paragraph(f"Project source file: {source_filename}")
+        doc.add_paragraph(f"Selected turbine: {turbine_name}")
+        doc.add_paragraph(f"Delivery time: {timeline}")
+        doc.add_paragraph("Delivery term (incoterm): FOB / CIF (to be confirmed)")
+        doc.add_paragraph("Guarantee: 12 months after commissioning")
+        doc.add_paragraph("Country of manufacturing: China")
+        doc.add_paragraph(f"Year of manufacturing: {datetime.utcnow().year}")
+        doc.add_paragraph(f"Analysis confidence: {confidence}")
+        doc.add_paragraph("")
+        doc.add_paragraph("Technical Selection Summary")
+        doc.add_paragraph(f"Project Summary: {project_type}, estimated capacity {capacity_kw} kW")
+        doc.add_paragraph(f"Recommended Turbine Type: {turbine_name}")
+        doc.add_paragraph("Unit Configuration: Single-unit baseline (adjustable per customer confirmation)")
+        doc.add_paragraph("Main Equipment Scope: Hydro Turbine; Generator and Exciter / AVR; Speed Governor; Inlet Valve; Automation System")
+        doc.add_paragraph("Automation Scope: Standard PLC Automation (local HMI, auto start/stop, governor interface, AVR interface, inlet valve interlock, alarm monitoring, unit status display, basic data logging)")
+        doc.add_paragraph("Optional Upgrade (not included in main equipment): Advanced SCADA; Remote Monitoring; Central Control Room; Dispatch Integration")
+        doc.add_paragraph("Technical Assumptions: preliminary hydraulic/electrical parameters based on provided input and standard selection rules")
+        doc.add_paragraph("Risk Notes: transformer, switchgear, penstock, civil works, international freight, and installation service are not included in main equipment scope")
+        readiness = "Firm Ready" if confidence == "High" else "Preliminary Ready"
+        doc.add_paragraph(f"Quotation Readiness: {readiness}")
+
+        buf = io.BytesIO()
+        doc.save(buf)
+        buf.seek(0)
+        out_name = f"Proforma_Invoice_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.docx"
+
+        return StreamingResponse(
+            buf,
+            media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            headers={"Content-Disposition": f'attachment; filename="{out_name}"'}
+        )
+    except Exception as e:
+        logger.error(f"Error generating proforma invoice: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to generate proforma invoice: {str(e)}"
         )
 
 
