@@ -1,0 +1,2870 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HydroQuote AI · Intelligent Hydropower Quotation System</title>
+    <style>
+        :root {
+            --navy: #0b1f3a;
+            --navy-2: #143055;
+            --navy-light: #1e4173;
+            --gold: #c9a961;
+            --gold-dark: #a98a45;
+            --bg: #ffffff;
+            --bg-soft: #f5f7fa;
+            --bg-deep: #eef2f7;
+            --text: #1a1a1a;
+            --text-soft: #4a5568;
+            --text-mute: #8a94a6;
+            --line: #e3e8ef;
+            --green: #2f9e6e;
+            --red: #c0392b;
+            --amber: #d68a14;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
+            color: var(--text);
+            background: var(--bg);
+            line-height: 1.7;
+            font-size: 15px;
+        }
+
+        a { color: inherit; text-decoration: none; }
+
+        /* ========== Top Bar ========== */
+        .topbar {
+            background: #fff;
+            border-bottom: 1px solid var(--line);
+            font-size: 12px;
+            color: var(--text-mute);
+        }
+        .topbar-inner {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 8px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .topbar .stock { letter-spacing: 1px; }
+        .topbar .right { display: flex; gap: 18px; align-items: center; }
+        .topbar a:hover { color: var(--navy); }
+
+        /* ========== Header / Nav ========== */
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(255,255,255,0.97);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid var(--line);
+        }
+        .nav {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 18px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .logo-mark {
+            width: 42px; height: 42px;
+            background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gold);
+            font-weight: 700;
+            font-size: 20px;
+            font-family: "Times New Roman", serif;
+            letter-spacing: -1px;
+        }
+        .logo-text {
+            line-height: 1.2;
+        }
+        .logo-text .name {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--navy);
+            letter-spacing: 1px;
+        }
+        .logo-text .sub {
+            font-size: 11px;
+            color: var(--text-mute);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 38px;
+            list-style: none;
+        }
+        .nav-menu a {
+            font-size: 13px;
+            color: var(--text);
+            font-weight: 500;
+            position: relative;
+            padding: 8px 0;
+            transition: color 0.2s;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .nav-menu a::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 50%;
+            width: 0; height: 2px;
+            background: var(--gold);
+            transition: all 0.25s ease;
+            transform: translateX(-50%);
+        }
+        .nav-menu a:hover { color: var(--navy); }
+        .nav-menu a:hover::after { width: 100%; }
+        .nav-menu a.active { color: var(--navy); }
+        .nav-menu a.active::after { width: 100%; }
+
+        .nav-right { display: flex; align-items: center; gap: 18px; }
+        .nav-cta {
+            background: var(--gold);
+            color: #fff !important;
+            padding: 10px 22px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            transition: all 0.25s;
+        }
+        .nav-cta:hover {
+            background: var(--gold-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 14px rgba(201,169,97,0.4);
+        }
+
+        /* ========== Hero ========== */
+        .hero {
+            position: relative;
+            height: 640px;
+            background:
+                linear-gradient(180deg, rgba(11,31,58,0.55) 0%, rgba(11,31,58,0.85) 100%),
+                radial-gradient(ellipse at 30% 40%, #1e4173 0%, #0b1f3a 70%);
+            color: #fff;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                repeating-linear-gradient(
+                    115deg,
+                    transparent 0px,
+                    transparent 80px,
+                    rgba(201,169,97,0.04) 80px,
+                    rgba(201,169,97,0.04) 81px
+                );
+            pointer-events: none;
+        }
+        .hero::after {
+            content: '';
+            position: absolute;
+            right: -160px; bottom: -160px;
+            width: 600px; height: 600px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(201,169,97,0.15) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .hero-inner {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 24px;
+            position: relative;
+            z-index: 2;
+            width: 100%;
+        }
+        .hero-tag {
+            display: inline-block;
+            font-size: 11px;
+            letter-spacing: 5px;
+            color: var(--gold);
+            border: 1px solid rgba(201,169,97,0.5);
+            padding: 6px 18px;
+            margin-bottom: 32px;
+            text-transform: uppercase;
+        }
+        .hero h1 {
+            font-size: 56px;
+            font-weight: 300;
+            letter-spacing: 1px;
+            line-height: 1.2;
+            margin-bottom: 28px;
+        }
+        .hero h1 strong {
+            font-weight: 600;
+            color: var(--gold);
+            font-style: italic;
+        }
+        .hero p.lead {
+            font-size: 17px;
+            color: rgba(255,255,255,0.85);
+            max-width: 720px;
+            margin-bottom: 14px;
+            line-height: 1.9;
+        }
+        .hero p.lead-sub {
+            font-size: 14px;
+            color: rgba(255,255,255,0.55);
+            max-width: 720px;
+            font-style: italic;
+            margin-bottom: 44px;
+            letter-spacing: 0.5px;
+        }
+        .hero-actions { display: flex; gap: 18px; flex-wrap: wrap; }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 32px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 500;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.25s;
+            border: none;
+            font-family: inherit;
+        }
+        .btn-primary {
+            background: var(--gold);
+            color: #fff;
+        }
+        .btn-primary:hover {
+            background: var(--gold-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(201,169,97,0.4);
+        }
+        .btn-ghost {
+            background: transparent;
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.4);
+        }
+        .btn-ghost:hover {
+            background: rgba(255,255,255,0.08);
+            border-color: #fff;
+        }
+        .btn-arrow { font-size: 16px; }
+
+        .hero-status {
+            position: absolute;
+            top: 30px; right: 30px;
+            background: rgba(11,31,58,0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.15);
+            padding: 10px 18px;
+            border-radius: 30px;
+            font-size: 12px;
+            color: rgba(255,255,255,0.85);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 3;
+            letter-spacing: 1px;
+        }
+        .status-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: #888;
+        }
+        .status-dot.healthy {
+            background: #2ecc71;
+            box-shadow: 0 0 0 4px rgba(46,204,113,0.25);
+            animation: pulse 2s infinite;
+        }
+        .status-dot.unhealthy { background: #e74c3c; }
+        @keyframes pulse {
+            0%,100% { box-shadow: 0 0 0 4px rgba(46,204,113,0.25); }
+            50% { box-shadow: 0 0 0 8px rgba(46,204,113,0.05); }
+        }
+
+        /* ========== Section base ========== */
+        section { padding: 110px 24px; }
+        .container { max-width: 1280px; margin: 0 auto; }
+        .section-head {
+            text-align: center;
+            margin-bottom: 70px;
+        }
+        .section-head .eyebrow {
+            font-size: 11px;
+            color: var(--gold);
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            margin-bottom: 14px;
+            font-weight: 500;
+        }
+        .section-head h2 {
+            font-size: 40px;
+            font-weight: 300;
+            color: var(--navy);
+            letter-spacing: 1px;
+            margin-bottom: 18px;
+        }
+        .section-head .underline {
+            width: 60px;
+            height: 2px;
+            background: var(--gold);
+            margin: 0 auto 24px;
+        }
+        .section-head p {
+            font-size: 15px;
+            color: var(--text-soft);
+            max-width: 720px;
+            margin: 0 auto;
+            line-height: 1.9;
+        }
+
+        /* ========== About ========== */
+        .about { background: var(--bg); }
+        .about-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 80px;
+            align-items: center;
+        }
+        .about-text h3 {
+            font-size: 28px;
+            font-weight: 400;
+            color: var(--navy);
+            margin-bottom: 24px;
+            letter-spacing: 1px;
+            line-height: 1.4;
+        }
+        .about-text h3 em {
+            color: var(--gold);
+            font-style: normal;
+            font-weight: 500;
+        }
+        .about-text p {
+            color: var(--text-soft);
+            margin-bottom: 16px;
+            font-size: 14px;
+            line-height: 1.85;
+        }
+        .about-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            margin-top: 40px;
+            padding-top: 40px;
+            border-top: 1px solid var(--line);
+        }
+        .stat-num {
+            font-size: 40px;
+            font-weight: 600;
+            color: var(--navy);
+            font-family: "Georgia", serif;
+        }
+        .stat-num small {
+            font-size: 16px;
+            color: var(--gold);
+            margin-left: 6px;
+            font-family: -apple-system, sans-serif;
+        }
+        .stat-label {
+            font-size: 11px;
+            color: var(--text-mute);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-top: 4px;
+        }
+        .about-visual {
+            position: relative;
+            height: 480px;
+            background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
+            border-radius: 4px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .about-visual::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                repeating-linear-gradient(
+                    45deg,
+                    transparent 0px,
+                    transparent 40px,
+                    rgba(201,169,97,0.06) 40px,
+                    rgba(201,169,97,0.06) 41px
+                );
+        }
+        .turbine-svg {
+            width: 280px; height: 280px;
+            color: var(--gold);
+            opacity: 0.85;
+            position: relative;
+            z-index: 2;
+        }
+        .turbine-svg .blade {
+            transform-origin: center;
+            animation: spin 22s linear infinite;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .about-visual .label-overlay {
+            position: absolute;
+            bottom: 24px; left: 24px;
+            color: rgba(255,255,255,0.85);
+            font-size: 11px;
+            letter-spacing: 4px;
+            border-left: 2px solid var(--gold);
+            padding-left: 14px;
+            z-index: 3;
+            text-transform: uppercase;
+        }
+
+        /* ========== Products ========== */
+        .products { background: var(--bg-soft); }
+        .product-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 4px;
+            margin-bottom: 60px;
+            flex-wrap: wrap;
+            border-bottom: 1px solid var(--line);
+        }
+        .product-tab {
+            padding: 18px 28px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 12px;
+            color: var(--text-soft);
+            letter-spacing: 2px;
+            font-family: inherit;
+            position: relative;
+            transition: color 0.2s;
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+        .product-tab:hover { color: var(--navy); }
+        .product-tab.active {
+            color: var(--navy);
+            font-weight: 600;
+        }
+        .product-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px; left: 50%;
+            transform: translateX(-50%);
+            width: 60%; height: 2px;
+            background: var(--gold);
+        }
+        .product-panel {
+            display: none;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+            animation: fadeIn 0.4s ease;
+        }
+        .product-panel.active { display: grid; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .product-image {
+            height: 400px;
+            background: linear-gradient(135deg, var(--navy) 0%, var(--navy-2) 100%);
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .product-image::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(
+                90deg,
+                transparent 0px, transparent 60px,
+                rgba(255,255,255,0.03) 60px, rgba(255,255,255,0.03) 61px
+            );
+        }
+        .product-image .icon {
+            color: var(--gold);
+            opacity: 0.9;
+            position: relative;
+            z-index: 2;
+        }
+        .product-image .product-photo {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            padding: 28px 40px;
+            box-sizing: border-box;
+            z-index: 2;
+        }
+        .product-image .product-icon-fallback {
+            display: none;
+            position: relative;
+            z-index: 2;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+        }
+        .product-image.is-photo-missing .product-photo {
+            display: none;
+        }
+        .product-image.is-photo-missing .product-icon-fallback {
+            display: flex;
+        }
+        .product-image .badge {
+            position: absolute;
+            top: 24px; left: 24px;
+            z-index: 3;
+            background: rgba(201,169,97,0.15);
+            color: var(--gold);
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 10px;
+            letter-spacing: 3px;
+            border: 1px solid rgba(201,169,97,0.4);
+            z-index: 3;
+            text-transform: uppercase;
+        }
+        .product-info h3 {
+            font-size: 32px;
+            color: var(--navy);
+            font-weight: 400;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+        .product-info .en-name {
+            font-size: 12px;
+            color: var(--gold);
+            letter-spacing: 4px;
+            margin-bottom: 28px;
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+        .product-info .desc {
+            color: var(--text-soft);
+            font-size: 14px;
+            margin-bottom: 32px;
+            line-height: 1.95;
+        }
+        .product-specs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px 32px;
+            padding: 28px 32px;
+            background: #fff;
+            border-left: 3px solid var(--gold);
+            border-radius: 2px;
+        }
+        .spec-item .spec-label {
+            font-size: 10px;
+            color: var(--text-mute);
+            letter-spacing: 3px;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+        }
+        .spec-item .spec-value {
+            font-size: 18px;
+            color: var(--navy);
+            font-weight: 600;
+        }
+
+        /* ========== Quotation ========== */
+        .quotation {
+            background: linear-gradient(180deg, #0b1f3a 0%, #143055 100%);
+            color: #fff;
+            position: relative;
+            overflow: hidden;
+        }
+        .quotation::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(
+                115deg,
+                transparent 0px, transparent 80px,
+                rgba(201,169,97,0.04) 80px, rgba(201,169,97,0.04) 81px
+            );
+        }
+        .quotation .section-head h2 { color: #fff; font-weight: 300; }
+        .quotation .section-head p { color: rgba(255,255,255,0.7); }
+        .quote-card {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 6px;
+            padding: 50px;
+            position: relative;
+            z-index: 2;
+            backdrop-filter: blur(10px);
+        }
+        .quote-grid {
+            display: grid;
+            grid-template-columns: 1.1fr 1fr;
+            gap: 50px;
+        }
+        .upload-area {
+            border: 2px dashed rgba(201,169,97,0.4);
+            border-radius: 4px;
+            padding: 60px 30px;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: pointer;
+            background: rgba(0,0,0,0.15);
+        }
+        .upload-area:hover, .upload-area.dragover {
+            border-color: var(--gold);
+            background: rgba(201,169,97,0.05);
+        }
+        .upload-icon {
+            width: 60px; height: 60px;
+            margin: 0 auto 20px;
+            color: var(--gold);
+        }
+        .upload-area .title {
+            font-size: 17px;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+            font-weight: 500;
+        }
+        .upload-area .hint {
+            font-size: 12px;
+            color: rgba(255,255,255,0.55);
+            margin-bottom: 24px;
+            letter-spacing: 1px;
+        }
+        .file-info {
+            margin-top: 20px;
+            padding: 14px 20px;
+            background: rgba(201,169,97,0.1);
+            border: 1px solid rgba(201,169,97,0.3);
+            border-radius: 4px;
+            font-size: 13px;
+            display: none;
+        }
+        .file-info.show { display: block; }
+        .file-info .name {
+            color: var(--gold);
+            font-weight: 600;
+        }
+        .quote-side h3 {
+            font-size: 22px;
+            font-weight: 300;
+            letter-spacing: 1px;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .feat-list { list-style: none; margin-bottom: 30px; }
+        .feat-list li {
+            padding: 10px 0;
+            font-size: 14px;
+            color: rgba(255,255,255,0.8);
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            line-height: 1.7;
+        }
+        .feat-list li::before {
+            content: '';
+            width: 6px; height: 6px;
+            background: var(--gold);
+            border-radius: 50%;
+            margin-top: 8px;
+            flex-shrink: 0;
+        }
+        .submit-row {
+            margin-top: 30px;
+            display: flex;
+            gap: 14px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .submit-row .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .sample-link {
+            font-size: 12px;
+            color: rgba(255,255,255,0.55);
+            cursor: pointer;
+            text-decoration: underline;
+            letter-spacing: 1px;
+        }
+        .sample-link:hover { color: var(--gold); }
+        .tip-box {
+            font-size: 12px;
+            color: rgba(255,255,255,0.55);
+            padding: 14px 18px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 4px;
+            line-height: 1.8;
+            border-left: 2px solid var(--gold);
+        }
+        .tip-box strong {
+            color: var(--gold);
+            letter-spacing: 1px;
+        }
+
+        /* Result panel */
+        .result-panel {
+            margin-top: 40px;
+            background: rgba(255,255,255,0.97);
+            color: var(--text);
+            border-radius: 4px;
+            padding: 0;
+            display: none;
+            overflow: hidden;
+            position: relative;
+            z-index: 2;
+        }
+        .result-panel.show { display: block; animation: fadeIn 0.5s ease; }
+        .result-header {
+            background: var(--navy);
+            color: #fff;
+            padding: 22px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .result-header h4 {
+            font-weight: 400;
+            letter-spacing: 2px;
+            font-size: 17px;
+            text-transform: uppercase;
+        }
+        .result-header .badge {
+            font-size: 10px;
+            padding: 5px 12px;
+            border-radius: 30px;
+            background: rgba(201,169,97,0.2);
+            color: var(--gold);
+            letter-spacing: 3px;
+        }
+        .result-body { padding: 36px; }
+        .result-section { margin-bottom: 32px; }
+        .result-section:last-child { margin-bottom: 0; }
+        .result-section h5 {
+            color: var(--navy);
+            font-size: 12px;
+            letter-spacing: 3px;
+            margin-bottom: 18px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--line);
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+        .kv-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 11px 0;
+            border-bottom: 1px dashed var(--line);
+            font-size: 14px;
+        }
+        .kv-row:last-child { border-bottom: none; }
+        .kv-label { color: var(--text-soft); }
+        .kv-value { color: var(--text); font-weight: 500; }
+        .kv-value.accent { color: var(--gold-dark); font-weight: 600; }
+        .kv-value.large {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--navy);
+            font-family: "Georgia", serif;
+        }
+        .kv-value.confidence-high { color: var(--green); font-weight: 600; }
+        .kv-value.confidence-medium { color: var(--amber); font-weight: 600; }
+        .kv-value.confidence-low { color: var(--red); font-weight: 600; }
+        .alert-box {
+            background: #fff8e8;
+            border-left: 4px solid var(--amber);
+            padding: 16px 20px;
+            border-radius: 2px;
+            font-size: 13px;
+            color: #8a5a0a;
+        }
+        .alert-box .title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--amber);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .alert-box ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        .alert-box li {
+            padding: 4px 0;
+            padding-left: 18px;
+            position: relative;
+        }
+        .alert-box li::before {
+            content: '▸';
+            position: absolute;
+            left: 0;
+            color: var(--amber);
+        }
+
+        /* ========== Wizard ========== */
+        .wizard-steps {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+            margin: 0 auto 50px;
+            position: relative;
+            z-index: 2;
+            max-width: 760px;
+        }
+        .wizard-steps .step {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            opacity: 0.5;
+            transition: opacity 0.3s ease;
+        }
+        .wizard-steps .step.active,
+        .wizard-steps .step.completed { opacity: 1; }
+        .wizard-steps .step .num {
+            width: 42px; height: 42px;
+            border-radius: 50%;
+            border: 1.5px solid rgba(255,255,255,0.4);
+            color: rgba(255,255,255,0.6);
+            display: flex; align-items: center; justify-content: center;
+            font-family: "Georgia", serif;
+            font-size: 17px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .wizard-steps .step.active .num {
+            background: var(--gold);
+            border-color: var(--gold);
+            color: var(--navy);
+            box-shadow: 0 0 0 6px rgba(201,169,97,0.18);
+        }
+        .wizard-steps .step.completed .num {
+            background: rgba(201,169,97,0.85);
+            border-color: var(--gold);
+            color: var(--navy);
+        }
+        .wizard-steps .step .lab {
+            font-size: 12px;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.85);
+        }
+        .wizard-steps .step.active .lab { color: var(--gold); }
+        .wizard-steps .connector {
+            flex: 1;
+            height: 1px;
+            background: rgba(255,255,255,0.2);
+            min-width: 40px;
+            max-width: 90px;
+            margin: 0 18px;
+        }
+
+        /* Step containers */
+        .wizard-step { display: none; }
+        .wizard-step.active { display: block; animation: fadeIn 0.4s ease; }
+
+        /* Step 1: input mode tabs */
+        .input-mode-tabs {
+            display: inline-flex;
+            background: rgba(0,0,0,0.25);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 30px;
+            padding: 4px;
+            margin-bottom: 28px;
+        }
+        .input-mode-tabs .pill {
+            padding: 9px 26px;
+            font-size: 12px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.6);
+            cursor: pointer;
+            border-radius: 30px;
+            transition: all 0.25s ease;
+            background: transparent;
+            border: none;
+            font-family: inherit;
+        }
+        .input-mode-tabs .pill.active {
+            background: var(--gold);
+            color: var(--navy);
+            font-weight: 600;
+        }
+        .input-pane { display: none; }
+        .input-pane.active { display: block; }
+
+        /* Step 1: textarea */
+        .text-input {
+            width: 100%;
+            min-height: 240px;
+            padding: 22px 24px;
+            background: rgba(0,0,0,0.18);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 4px;
+            color: #fff;
+            font-family: "Inter", "Segoe UI", sans-serif;
+            font-size: 14px;
+            line-height: 1.7;
+            resize: vertical;
+            transition: border-color 0.25s ease, background 0.25s ease;
+        }
+        .text-input:focus {
+            outline: none;
+            border-color: var(--gold);
+            background: rgba(0,0,0,0.3);
+        }
+        .text-input::placeholder { color: rgba(255,255,255,0.35); }
+
+        /* Step 2: extracted params card */
+        .confirm-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0 40px;
+            margin-bottom: 8px;
+        }
+        .confirm-grid .kv-row { padding: 14px 0; }
+
+        .turbine-thumb {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .turbine-thumb img,
+        .turbine-thumb .thumb-fallback {
+            width: 38px; height: 28px;
+            object-fit: cover;
+            border-radius: 3px;
+            background: var(--navy);
+            border: 1px solid var(--line);
+        }
+        .turbine-thumb .thumb-fallback {
+            display: flex; align-items: center; justify-content: center;
+            color: var(--gold);
+        }
+
+        /* Step 2: full-width turbine preview (match Step 3 frame size) */
+        .confirm-grid .confirm-turbine-span {
+            grid-column: 1 / -1;
+            display: block;
+            padding: 18px 0 22px;
+            border-bottom: 1px dashed var(--line);
+        }
+        .confirm-grid .confirm-turbine-span > .kv-label {
+            display: block;
+            margin-bottom: 14px;
+        }
+        .confirm-grid .confirm-turbine-span .confirm-step2-frame {
+            height: 320px;
+            margin-bottom: 14px;
+        }
+        .confirm-turbine-meta {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: baseline;
+            gap: 10px 16px;
+            font-size: 15px;
+            color: var(--text);
+        }
+        .confirm-turbine-meta strong {
+            font-family: "Georgia", serif;
+            font-size: 18px;
+            font-weight: 500;
+            color: var(--navy);
+        }
+        .confirm-turbine-meta .confirm-turbine-tag {
+            font-size: 11px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--gold-dark);
+            font-weight: 600;
+        }
+
+        /* Step 2: supplement card */
+        .supplement-card {
+            margin-top: 28px;
+            background: #fff8e8;
+            border-left: 4px solid var(--amber);
+            border-radius: 2px;
+            padding: 24px 26px;
+            color: #5a3d0a;
+        }
+        .supplement-card .sc-title {
+            font-size: 12px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--amber);
+            font-weight: 700;
+            margin-bottom: 14px;
+        }
+        .supplement-card .sc-questions {
+            list-style: none;
+            margin: 0 0 22px 0;
+            padding: 0;
+        }
+        .supplement-card .sc-questions li {
+            padding: 8px 0 8px 22px;
+            font-size: 14px;
+            position: relative;
+            line-height: 1.6;
+            color: #6b4710;
+        }
+        .supplement-card .sc-questions li::before {
+            content: '?';
+            position: absolute;
+            left: 0; top: 8px;
+            width: 16px; height: 16px;
+            border-radius: 50%;
+            background: var(--amber);
+            color: #fff;
+            font-size: 11px;
+            font-weight: 700;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .supplement-card .sc-tabs {
+            display: inline-flex;
+            background: rgba(214,138,20,0.1);
+            border-radius: 20px;
+            padding: 3px;
+            margin-bottom: 12px;
+        }
+        .supplement-card .sc-tabs .pill {
+            padding: 7px 18px;
+            font-size: 11px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: #8a5a0a;
+            cursor: pointer;
+            border-radius: 20px;
+            background: transparent;
+            border: none;
+            font-family: inherit;
+        }
+        .supplement-card .sc-tabs .pill.active {
+            background: var(--amber);
+            color: #fff;
+            font-weight: 600;
+        }
+        .supplement-card .sc-pane { display: none; }
+        .supplement-card .sc-pane.active { display: block; }
+        .supplement-card textarea {
+            width: 100%;
+            min-height: 110px;
+            padding: 12px 14px;
+            border: 1px solid rgba(214,138,20,0.4);
+            border-radius: 3px;
+            background: #fffefb;
+            color: #3a2c0a;
+            font-family: inherit;
+            font-size: 13px;
+            resize: vertical;
+        }
+        .supplement-card textarea:focus {
+            outline: none;
+            border-color: var(--amber);
+        }
+        .supplement-card .sc-upload {
+            border: 1.5px dashed rgba(214,138,20,0.5);
+            background: rgba(255,248,232,0.6);
+            border-radius: 4px;
+            padding: 24px 18px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 13px;
+            color: #6b4710;
+            transition: all 0.25s ease;
+        }
+        .supplement-card .sc-upload:hover {
+            border-color: var(--amber);
+            background: rgba(255,243,210,0.85);
+        }
+        .supplement-card .sc-upload .name {
+            display: block;
+            margin-top: 8px;
+            font-weight: 600;
+            color: var(--amber);
+        }
+        .supplement-card .sc-action {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-top: 14px;
+            flex-wrap: wrap;
+        }
+        .supplement-card .btn-amber {
+            background: var(--amber);
+            color: #fff;
+            padding: 11px 24px;
+            border-radius: 3px;
+            border: none;
+            font-size: 12px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.25s ease;
+        }
+        .supplement-card .btn-amber:hover { background: #b87510; }
+        .supplement-card .btn-amber:disabled { opacity: 0.5; cursor: not-allowed; }
+        .supplement-card .sc-history {
+            margin-top: 18px;
+            padding-top: 16px;
+            border-top: 1px dashed rgba(214,138,20,0.35);
+        }
+        .supplement-card .sc-history .item {
+            font-size: 12px;
+            background: rgba(255,255,255,0.55);
+            border-radius: 3px;
+            padding: 8px 12px;
+            margin-bottom: 6px;
+            color: #6b4710;
+        }
+        .supplement-card .sc-history .item .ts {
+            color: #b08534;
+            font-weight: 600;
+            margin-right: 8px;
+        }
+
+        /* Action row (Step 2 / Step 3) */
+        .action-row {
+            display: flex;
+            gap: 14px;
+            align-items: center;
+            justify-content: flex-end;
+            margin-top: 32px;
+            padding-top: 26px;
+            border-top: 1px solid var(--line);
+            flex-wrap: wrap;
+            position: relative;
+            z-index: 3;
+        }
+        .action-row .btn-ghost {
+            background: transparent;
+            color: var(--text-soft);
+            border: 1px solid var(--line);
+            padding: 11px 22px;
+            border-radius: 3px;
+            font-size: 12px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+        .action-row .btn-ghost:hover {
+            border-color: var(--navy);
+            color: var(--navy);
+        }
+        .action-row .btn-ghost:disabled {
+            opacity: 0.5; cursor: not-allowed;
+        }
+
+        /* Step 3: 50/50 layout */
+        .quote-display {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 36px;
+            background: #fff;
+            color: var(--text);
+            border-radius: 4px;
+            padding: 0;
+            position: relative;
+            z-index: 2;
+            overflow: hidden;
+        }
+        .quote-visual {
+            background: linear-gradient(160deg, #0b1f3a 0%, #1e4173 100%);
+            color: #fff;
+            padding: 40px 36px;
+            display: flex;
+            flex-direction: column;
+        }
+        .turbine-image-frame {
+            position: relative;
+            background: rgba(0,0,0,0.25);
+            border-radius: 3px;
+            height: 320px;
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+        .turbine-image-frame::before,
+        .turbine-image-frame::after {
+            content: '';
+            position: absolute;
+            width: 28px; height: 28px;
+            border: 2px solid var(--gold);
+            z-index: 2;
+            pointer-events: none;
+        }
+        .turbine-image-frame::before {
+            top: 10px; left: 10px;
+            border-right: none; border-bottom: none;
+        }
+        .turbine-image-frame::after {
+            bottom: 10px; right: 10px;
+            border-left: none; border-top: none;
+        }
+        .turbine-image-frame img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+            display: block;
+        }
+        .turbine-image-frame .svg-fallback {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gold);
+            background: radial-gradient(ellipse at center, rgba(201,169,97,0.08) 0%, transparent 70%);
+        }
+        .quote-visual h3 {
+            font-family: "Georgia", serif;
+            font-size: 28px;
+            font-weight: 400;
+            letter-spacing: 1.5px;
+            margin-bottom: 6px;
+        }
+        .quote-visual .turbine-tag {
+            color: var(--gold);
+            font-size: 11px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-bottom: 24px;
+            font-weight: 600;
+        }
+        .quote-visual .product-specs {
+            margin-top: auto;
+            padding-top: 24px;
+            border-top: 1px solid rgba(255,255,255,0.12);
+        }
+        .quote-visual .spec-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 9px 0;
+            font-size: 13px;
+            color: rgba(255,255,255,0.85);
+            border-bottom: 1px dashed rgba(255,255,255,0.1);
+        }
+        .quote-visual .spec-row:last-child { border-bottom: none; }
+        .quote-visual .spec-row .lab {
+            color: rgba(255,255,255,0.55);
+            letter-spacing: 1px;
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+        .quote-visual .spec-row .val { color: var(--gold); font-weight: 600; }
+
+        .quote-details {
+            background: #fff;
+            color: var(--text);
+            padding: 40px 36px;
+            overflow-y: auto;
+        }
+        .quote-details h4 {
+            font-size: 12px;
+            letter-spacing: 3px;
+            color: var(--navy);
+            text-transform: uppercase;
+            font-weight: 700;
+            margin-bottom: 16px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--line);
+        }
+        .quote-details .qd-section { margin-bottom: 28px; }
+        .quote-details .qd-section:last-child { margin-bottom: 0; }
+
+        @media (max-width: 960px) {
+            .wizard-steps {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+            }
+            .wizard-steps .step {
+                justify-content: flex-start;
+            }
+            .wizard-steps .connector {
+                width: 1px;
+                height: 18px;
+                margin: 0 0 0 21px;
+                max-width: none;
+            }
+            .quote-display { grid-template-columns: 1fr; }
+            .confirm-grid { grid-template-columns: 1fr; }
+            .turbine-image-frame { height: 240px; }
+            .confirm-grid .confirm-turbine-span .confirm-step2-frame { height: 240px; }
+        }
+
+        /* ========== Cases ========== */
+        .cases { background: var(--bg); }
+        .cases-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 50px;
+            font-size: 12px;
+            color: var(--text-soft);
+            letter-spacing: 2px;
+            flex-wrap: wrap;
+            text-transform: uppercase;
+        }
+        .cases-tabs span {
+            cursor: pointer;
+            padding-bottom: 6px;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        .cases-tabs span:hover { color: var(--navy); }
+        .cases-tabs span.active {
+            color: var(--navy);
+            border-color: var(--gold);
+            font-weight: 600;
+        }
+        .case-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+        .case-card {
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 4px;
+            overflow: hidden;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .case-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 18px 40px rgba(11,31,58,0.12);
+            border-color: transparent;
+        }
+        .case-img {
+            height: 200px;
+            background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gold);
+            overflow: hidden;
+        }
+        .case-img::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent 0px, transparent 30px,
+                rgba(255,255,255,0.04) 30px, rgba(255,255,255,0.04) 31px
+            );
+        }
+        .case-img .num {
+            position: absolute;
+            top: 16px; right: 18px;
+            font-family: "Georgia", serif;
+            font-size: 28px;
+            color: rgba(255,255,255,0.25);
+        }
+        .case-meta {
+            padding: 24px 26px;
+        }
+        .case-meta .type {
+            font-size: 10px;
+            color: var(--gold);
+            letter-spacing: 3px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+        .case-meta h4 {
+            font-size: 17px;
+            color: var(--navy);
+            font-weight: 500;
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+            line-height: 1.4;
+        }
+        .case-meta .desc {
+            font-size: 13px;
+            color: var(--text-soft);
+            line-height: 1.75;
+        }
+        .case-stats {
+            margin-top: 16px;
+            padding-top: 14px;
+            border-top: 1px solid var(--line);
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--text-mute);
+            letter-spacing: 0.5px;
+        }
+        .case-stats strong { color: var(--navy); font-weight: 600; }
+
+        /* ========== System Status ========== */
+        .status-section { background: var(--bg-soft); padding: 80px 24px; }
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+        .status-card {
+            background: #fff;
+            padding: 28px;
+            border-radius: 4px;
+            border-left: 3px solid var(--gold);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .status-card .label {
+            font-size: 11px;
+            color: var(--text-mute);
+            letter-spacing: 2px;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+        .status-card .val {
+            font-size: 18px;
+            color: var(--navy);
+            font-weight: 600;
+        }
+        .status-card .icon {
+            width: 36px; height: 36px;
+            color: var(--gold);
+            opacity: 0.5;
+        }
+
+        /* ========== Footer ========== */
+        footer {
+            background: #07172d;
+            color: rgba(255,255,255,0.65);
+            padding: 70px 24px 28px;
+            font-size: 13px;
+        }
+        .footer-grid {
+            max-width: 1280px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1.6fr 1fr 1fr 1fr;
+            gap: 56px;
+            padding-bottom: 36px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        .footer-brand .logo-mark {
+            width: 38px; height: 38px;
+            font-size: 16px;
+            margin-bottom: 18px;
+        }
+        .footer-brand .brand-name {
+            color: #fff;
+            font-size: 16px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+        }
+        .footer-brand p {
+            line-height: 1.95;
+            color: rgba(255,255,255,0.55);
+            font-size: 13px;
+        }
+        .footer-col h5 {
+            color: #fff;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        .footer-col ul { list-style: none; }
+        .footer-col li {
+            margin-bottom: 10px;
+        }
+        .footer-col a:hover { color: var(--gold); }
+        .footer-contact-line {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 10px;
+            font-size: 13px;
+            align-items: baseline;
+        }
+        .footer-contact-line .lab {
+            color: rgba(255,255,255,0.4);
+            min-width: 64px;
+            font-size: 11px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .footer-bottom {
+            max-width: 1280px;
+            margin: 26px auto 0;
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: rgba(255,255,255,0.4);
+            letter-spacing: 1px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        /* ========== Loading spinner ========== */
+        .spinner {
+            display: inline-block;
+            width: 14px; height: 14px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: rot 0.8s linear infinite;
+        }
+        @keyframes rot { to { transform: rotate(360deg); } }
+
+        /* ========== Responsive ========== */
+        @media (max-width: 960px) {
+            .nav-menu { display: none; }
+            .topbar { display: none; }
+            .hero h1 { font-size: 36px; }
+            .hero { height: 560px; }
+            .about-grid, .product-panel.active, .quote-grid { grid-template-columns: 1fr; gap: 30px; }
+            .case-grid { grid-template-columns: 1fr; }
+            .status-grid { grid-template-columns: repeat(2, 1fr); }
+            .footer-grid { grid-template-columns: 1fr; gap: 30px; }
+            .about-stats { grid-template-columns: 1fr; }
+            section { padding: 70px 20px; }
+            .quote-card { padding: 26px; }
+            .section-head h2 { font-size: 28px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ========== Top Bar ========== -->
+<div class="topbar">
+    <div class="topbar-inner">
+        <div class="stock">SYSTEM ID · HQ-AI-2026 · VERSION 2.0.0</div>
+        <div class="right">
+            <a href="http://localhost:8000/docs" target="_blank">API Documentation</a>
+            <a href="#">Service Hotline · +1 (800) 888-0000</a>
+        </div>
+    </div>
+</div>
+
+<!-- ========== Header / Nav ========== -->
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <div class="logo-mark">HQ</div>
+            <div class="logo-text">
+                <div class="name">HydroQuote AI</div>
+                <div class="sub">Intelligent Hydropower Quotation</div>
+            </div>
+        </div>
+        <ul class="nav-menu">
+            <li><a href="#home" class="active">Home</a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="#products">Products</a></li>
+            <li><a href="#quotation">Quotation</a></li>
+            <li><a href="#status">Status</a></li>
+        </ul>
+        <div class="nav-right">
+            <a href="#quotation" class="nav-cta">Get Quote</a>
+        </div>
+    </nav>
+</header>
+
+<!-- ========== Hero ========== -->
+<section class="hero" id="home" style="padding: 0;">
+    <div class="hero-status" id="heroStatus">
+        <span class="status-dot"></span>
+        <span id="heroStatusText">Checking system…</span>
+    </div>
+    <div class="hero-inner">
+        <div class="hero-tag">AI POWERED · IBM WATSON</div>
+        <h1>Where <strong>Water</strong> Meets <strong>Intelligence</strong><br>The Future of Hydropower Quotation</h1>
+        <p class="lead">
+            Water nurtures life, sustains all things, and provides an inexhaustible source of renewable clean energy.
+        </p>
+        <p class="lead-sub">
+            HydroQuote AI compresses the traditional days-long turbine selection and pricing workflow
+            into seconds — powered by IBM Watson NLU and watsonx.ai.
+        </p>
+        <div class="hero-actions">
+            <a href="#quotation" class="btn btn-primary">
+                Generate Quote <span class="btn-arrow">→</span>
+            </a>
+            <a href="#products" class="btn btn-ghost">
+                Explore Products
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- ========== About ========== -->
+<section class="about" id="about">
+    <div class="container">
+        <div class="section-head">
+            <div class="eyebrow">About the System</div>
+            <h2>About HydroQuote AI</h2>
+            <div class="underline"></div>
+            <p>
+                Combining decades of hydropower engineering expertise with cutting-edge AI natural language
+                understanding — a prompt-driven intelligent quotation platform for hydropower projects.
+            </p>
+        </div>
+        <div class="about-grid">
+            <div class="about-text">
+                <h3>Prompt-Driven · <em>Pure LLM</em> · End-to-End</h3>
+                <p>
+                    HydroQuote AI is built on IBM Watson Natural Language Understanding and watsonx.ai
+                    large language models. Turbine model selection, unit configuration, equipment cost
+                    calculation, commercial pricing, and Proforma Invoice generation are all encapsulated
+                    into a five-stage Prompt Pipeline.
+                </p>
+                <p>
+                    Pricing rules, modification factors, and tax calculations are embedded directly into
+                    prompt templates, enabling fast iteration and consistent quotation generation.
+                    Rule updates take effect instantly with a single commit.
+                </p>
+                <p>
+                    The system covers the full power range from 500kW to 5000kW and supports all major
+                    turbine types: Francis, Kaplan, Pelton, Bulb, Tubular, and Cross-flow — with
+                    bilingual customer input and commercial document output.
+                </p>
+                <div class="about-stats">
+                    <div>
+                        <div class="stat-num">5<small>STAGES</small></div>
+                        <div class="stat-label">LLM Pipeline</div>
+                    </div>
+                    <div>
+                        <div class="stat-num">6<small>TYPES</small></div>
+                        <div class="stat-label">Turbine Coverage</div>
+                    </div>
+                    <div>
+                        <div class="stat-num">5000<small>kW</small></div>
+                        <div class="stat-label">Capacity Coverage</div>
+                    </div>
+                    <div>
+                        <div class="stat-num">&lt;5<small>SEC</small></div>
+                        <div class="stat-label">Quote Generation</div>
+                    </div>
+                </div>
+            </div>
+            <div class="about-visual">
+                <svg class="turbine-svg" viewBox="0 0 200 200" fill="none" stroke="currentColor" stroke-width="1.2">
+                    <circle cx="100" cy="100" r="90" stroke-opacity="0.3"/>
+                    <circle cx="100" cy="100" r="68" stroke-opacity="0.5"/>
+                    <circle cx="100" cy="100" r="14" fill="currentColor" stroke="none"/>
+                    <g class="blade">
+                        <path d="M100 100 Q 110 60 100 30 Q 92 60 100 100Z" fill="currentColor" fill-opacity="0.7"/>
+                        <path d="M100 100 Q 140 110 170 100 Q 140 92 100 100Z" fill="currentColor" fill-opacity="0.7"/>
+                        <path d="M100 100 Q 90 140 100 170 Q 108 140 100 100Z" fill="currentColor" fill-opacity="0.7"/>
+                        <path d="M100 100 Q 60 90 30 100 Q 60 108 100 100Z" fill="currentColor" fill-opacity="0.7"/>
+                    </g>
+                    <circle cx="100" cy="100" r="6" fill="#0b1f3a" stroke="none"/>
+                </svg>
+                <div class="label-overlay">Francis · Kaplan · Pelton</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ========== Products ========== -->
+<section class="products" id="products">
+    <div class="container">
+        <div class="section-head">
+            <div class="eyebrow">Product Catalog</div>
+            <h2>Turbine Catalog</h2>
+            <div class="underline"></div>
+            <p>Covering the full head range from 2m to 2000m+, with unit capacity from 500kW to 5000kW.
+               Six mainstream turbine types supported for instant selection and pricing.</p>
+        </div>
+        <div class="product-tabs" id="productTabs">
+            <button class="product-tab active" data-product="francis">Francis</button>
+            <button class="product-tab" data-product="kaplan">Kaplan</button>
+            <button class="product-tab" data-product="bulb">Bulb</button>
+            <button class="product-tab" data-product="pelton">Pelton</button>
+            <button class="product-tab" data-product="tubular">Tubular</button>
+            <button class="product-tab" data-product="crossflow">Cross-flow</button>
+        </div>
+
+        <!-- Francis -->
+        <div class="product-panel active" data-product="francis">
+            <div class="product-image" data-turbine-key="francis">
+                <span class="badge">Baseline Reference</span>
+                <img class="product-photo" alt="Francis turbine" loading="lazy" width="400" height="400"
+                     onerror="handleProductImageError(this)">
+                <div class="product-icon-fallback" aria-hidden="true">
+                    <svg class="icon" width="160" height="160" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <circle cx="50" cy="50" r="42" stroke-opacity="0.4"/>
+                        <circle cx="50" cy="50" r="28"/>
+                        <circle cx="50" cy="50" r="6" fill="currentColor"/>
+                        <path d="M50 22 Q 60 36 50 50 M78 50 Q 64 60 50 50 M50 78 Q 40 64 50 50 M22 50 Q 36 40 50 50" stroke-width="2"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="product-info">
+                <h3>Francis Turbine</h3>
+                <div class="en-name">Mixed-Flow Reaction Type</div>
+                <div class="desc">
+                    The most widely deployed and mature turbine type, ideal for medium head and stable flow
+                    hydropower stations. HydroQuote AI uses Francis as the pricing baseline (modification factor 1.00),
+                    delivering optimal economics across the 50m–700m head range.
+                </div>
+                <div class="product-specs">
+                    <div class="spec-item"><div class="spec-label">Head Range</div><div class="spec-value">20 – 300 m</div></div>
+                    <div class="spec-item"><div class="spec-label">Unit Capacity</div><div class="spec-value">≤ 5000 kW</div></div>
+                    <div class="spec-item"><div class="spec-label">Cost Factor</div><div class="spec-value">1.00</div></div>
+                    <div class="spec-item"><div class="spec-label">Flow Profile</div><div class="spec-value">Stable</div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Kaplan -->
+        <div class="product-panel" data-product="kaplan">
+            <div class="product-image" data-turbine-key="kaplan">
+                <span class="badge">Variable Flow Adaptive</span>
+                <img class="product-photo" alt="Kaplan turbine" loading="lazy" width="400" height="400"
+                     onerror="handleProductImageError(this)">
+                <div class="product-icon-fallback" aria-hidden="true">
+                    <svg class="icon" width="160" height="160" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <circle cx="50" cy="50" r="42" stroke-opacity="0.4"/>
+                        <circle cx="50" cy="50" r="6" fill="currentColor"/>
+                        <path d="M50 50 L 50 12 Q 56 14 58 22" stroke-width="2.5" fill="none"/>
+                        <path d="M50 50 L 88 50 Q 86 56 78 58" stroke-width="2.5" fill="none"/>
+                        <path d="M50 50 L 50 88 Q 44 86 42 78" stroke-width="2.5" fill="none"/>
+                        <path d="M50 50 L 12 50 Q 14 44 22 42" stroke-width="2.5" fill="none"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="product-info">
+                <h3>Kaplan Turbine</h3>
+                <div class="en-name">Axial-Flow Adjustable Blade</div>
+                <div class="desc">
+                    Adjustable propeller blades adapt to large flow variations, ideal for low-head stations
+                    with significant flow fluctuation. Delivers optimal efficiency in low-head, high-flow
+                    scenarios — particularly run-of-river installations.
+                </div>
+                <div class="product-specs">
+                    <div class="spec-item"><div class="spec-label">Head Range</div><div class="spec-value">3 – 50 m</div></div>
+                    <div class="spec-item"><div class="spec-label">Unit Capacity</div><div class="spec-value">≤ 5000 kW</div></div>
+                    <div class="spec-item"><div class="spec-label">Cost Factor</div><div class="spec-value">1.12</div></div>
+                    <div class="spec-item"><div class="spec-label">Flow Profile</div><div class="spec-value">Variable</div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bulb -->
+        <div class="product-panel" data-product="bulb">
+            <div class="product-image" data-turbine-key="bulb">
+                <span class="badge">Ultra Low Head</span>
+                <img class="product-photo" alt="Bulb turbine" loading="lazy" width="400" height="400"
+                     onerror="handleProductImageError(this)">
+                <div class="product-icon-fallback" aria-hidden="true">
+                    <svg class="icon" width="160" height="160" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <ellipse cx="50" cy="50" rx="38" ry="20" stroke-opacity="0.5"/>
+                        <ellipse cx="50" cy="50" rx="20" ry="20"/>
+                        <circle cx="50" cy="50" r="6" fill="currentColor"/>
+                        <path d="M50 35 L 65 30 M50 35 L 35 30 M50 65 L 65 70 M50 65 L 35 70" stroke-width="2"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="product-info">
+                <h3>Bulb Turbine</h3>
+                <div class="en-name">Horizontal Bulb Configuration</div>
+                <div class="desc">
+                    Fully axial horizontal layout — the preferred choice for low-head, high-flow scenarios
+                    such as tidal generation and run-of-river stations. Compact structure minimizes
+                    civil engineering scope.
+                </div>
+                <div class="product-specs">
+                    <div class="spec-item"><div class="spec-label">Head Range</div><div class="spec-value">2 – 30 m</div></div>
+                    <div class="spec-item"><div class="spec-label">Unit Capacity</div><div class="spec-value">≤ 5000 kW</div></div>
+                    <div class="spec-item"><div class="spec-label">Cost Factor</div><div class="spec-value">1.20</div></div>
+                    <div class="spec-item"><div class="spec-label">Layout</div><div class="spec-value">Horizontal</div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pelton -->
+        <div class="product-panel" data-product="pelton">
+            <div class="product-image" data-turbine-key="pelton">
+                <span class="badge">High Head Impulse</span>
+                <img class="product-photo" alt="Pelton turbine" loading="lazy" width="400" height="400"
+                     onerror="handleProductImageError(this)">
+                <div class="product-icon-fallback" aria-hidden="true">
+                    <svg class="icon" width="160" height="160" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <circle cx="50" cy="50" r="35"/>
+                        <circle cx="50" cy="50" r="6" fill="currentColor"/>
+                        <g stroke-width="2">
+                            <path d="M50 15 L 47 22 L 53 22 Z" fill="currentColor"/>
+                            <path d="M85 50 L 78 47 L 78 53 Z" fill="currentColor"/>
+                            <path d="M50 85 L 53 78 L 47 78 Z" fill="currentColor"/>
+                            <path d="M15 50 L 22 53 L 22 47 Z" fill="currentColor"/>
+                            <path d="M75 25 L 70 30 L 75 30 Z" fill="currentColor"/>
+                            <path d="M75 75 L 70 70 L 75 70 Z" fill="currentColor"/>
+                            <path d="M25 75 L 30 70 L 25 70 Z" fill="currentColor"/>
+                            <path d="M25 25 L 30 30 L 25 30 Z" fill="currentColor"/>
+                        </g>
+                    </svg>
+                </div>
+            </div>
+            <div class="product-info">
+                <h3>Pelton Turbine</h3>
+                <div class="en-name">High Head Impulse Type</div>
+                <div class="desc">
+                    Generates torque through high-velocity jet impact on bucket blades. Ideal for high-head,
+                    low-flow mountain hydropower stations — capable of operating at heads exceeding 2000m,
+                    making it the prime choice for steep terrain hydropower development.
+                </div>
+                <div class="product-specs">
+                    <div class="spec-item"><div class="spec-label">Head Range</div><div class="spec-value">300 – 2000 m</div></div>
+                    <div class="spec-item"><div class="spec-label">Unit Capacity</div><div class="spec-value">≤ 5000 kW</div></div>
+                    <div class="spec-item"><div class="spec-label">Cost Factor</div><div class="spec-value">1.08</div></div>
+                    <div class="spec-item"><div class="spec-label">Flow Profile</div><div class="spec-value">Low Flow</div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tubular -->
+        <div class="product-panel" data-product="tubular">
+            <div class="product-image" data-turbine-key="tubular">
+                <span class="badge">Compact Inline</span>
+                <img class="product-photo" alt="Tubular turbine (illustration: pumped storage unit)" loading="lazy" width="400" height="400"
+                     onerror="handleProductImageError(this)">
+                <div class="product-icon-fallback" aria-hidden="true">
+                    <svg class="icon" width="160" height="160" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <rect x="14" y="40" width="72" height="20" rx="10" stroke-opacity="0.5"/>
+                        <circle cx="50" cy="50" r="14"/>
+                        <circle cx="50" cy="50" r="5" fill="currentColor"/>
+                        <line x1="14" y1="50" x2="86" y2="50" stroke-width="0.7" stroke-dasharray="2 2"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="product-info">
+                <h3>Tubular Turbine</h3>
+                <div class="en-name">Axial Inline Configuration</div>
+                <div class="desc">
+                    Water flows axially through the runner with a compact and flexible installation footprint.
+                    Suited to medium-sized low-head hydropower projects — a lightweight alternative to
+                    full bulb configurations.
+                </div>
+                <div class="product-specs">
+                    <div class="spec-item"><div class="spec-label">Head Range</div><div class="spec-value">5 – 25 m</div></div>
+                    <div class="spec-item"><div class="spec-label">Unit Capacity</div><div class="spec-value">≤ 3000 kW</div></div>
+                    <div class="spec-item"><div class="spec-label">Cost Factor</div><div class="spec-value">1.15</div></div>
+                    <div class="spec-item"><div class="spec-label">Layout</div><div class="spec-value">Axial Inline</div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Crossflow -->
+        <div class="product-panel" data-product="crossflow">
+            <div class="product-image" data-turbine-key="crossflow">
+                <span class="badge">Cost Effective</span>
+                <img class="product-photo" alt="Cross-flow turbine (illustration: pumped storage unit)" loading="lazy" width="400" height="400"
+                     onerror="handleProductImageError(this)">
+                <div class="product-icon-fallback" aria-hidden="true">
+                    <svg class="icon" width="160" height="160" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <circle cx="50" cy="50" r="35"/>
+                        <circle cx="50" cy="50" r="22" stroke-opacity="0.4"/>
+                        <g stroke-width="1.5">
+                            <line x1="22" y1="50" x2="78" y2="50"/>
+                            <line x1="50" y1="22" x2="50" y2="78"/>
+                            <line x1="30" y1="30" x2="70" y2="70"/>
+                            <line x1="70" y1="30" x2="30" y2="70"/>
+                        </g>
+                        <circle cx="50" cy="50" r="6" fill="currentColor"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="product-info">
+                <h3>Cross-flow Turbine</h3>
+                <div class="en-name">Banki Cross-flow Type</div>
+                <div class="desc">
+                    Simple structure, easy maintenance, and low unit cost — ideal for budget-constrained
+                    small and micro hydropower projects. With a HydroQuote AI cost factor of 0.85,
+                    it's the optimal choice when project budget is the priority constraint.
+                </div>
+                <div class="product-specs">
+                    <div class="spec-item"><div class="spec-label">Head Range</div><div class="spec-value">2 – 200 m</div></div>
+                    <div class="spec-item"><div class="spec-label">Unit Capacity</div><div class="spec-value">≤ 1000 kW</div></div>
+                    <div class="spec-item"><div class="spec-label">Cost Factor</div><div class="spec-value">0.85</div></div>
+                    <div class="spec-item"><div class="spec-label">Highlight</div><div class="spec-value">Best Value</div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ========== Quotation ========== -->
+<section class="quotation" id="quotation">
+    <div class="container">
+        <div class="section-head">
+            <div class="eyebrow">AI-Powered Inquiry Workflow</div>
+            <h2>Customer Inquiry &amp; Quotation</h2>
+            <div class="underline"></div>
+            <p>A 3-step intelligent workflow: customer input, parameter confirmation,
+               and final quotation with turbine selection.</p>
+        </div>
+
+        <!-- Wizard progress bar -->
+        <div class="wizard-steps" id="wizardSteps">
+            <div class="step active" data-step="1">
+                <span class="num">1</span>
+                <span class="lab">Customer Inquiry</span>
+            </div>
+            <div class="connector"></div>
+            <div class="step" data-step="2">
+                <span class="num">2</span>
+                <span class="lab">Confirmation</span>
+            </div>
+            <div class="connector"></div>
+            <div class="step" data-step="3">
+                <span class="num">3</span>
+                <span class="lab">Quotation</span>
+            </div>
+        </div>
+
+        <!-- ========== Step 1: Customer Input ========== -->
+        <div class="wizard-step active" id="wizardStep1">
+            <div class="quote-card">
+                <div style="text-align:center; margin-bottom:30px;">
+                    <div class="input-mode-tabs" id="inputModeTabs" role="tablist">
+                        <button class="pill active" type="button" data-mode="file">Upload File</button>
+                        <button class="pill" type="button" data-mode="text">Paste Text</button>
+                    </div>
+                </div>
+
+                <div class="quote-grid">
+                    <!-- Left: input -->
+                    <div>
+                        <!-- File mode -->
+                        <div class="input-pane active" data-pane="file">
+                            <div class="upload-area" id="uploadArea">
+                                <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                    <polyline points="17 8 12 3 7 8"/>
+                                    <line x1="12" y1="3" x2="12" y2="15"/>
+                                </svg>
+                                <div class="title">Click or drag a file here</div>
+                                <div class="hint">Supported: TXT / PDF / DOCX / PPT / PPTX · Max 10 MB</div>
+                                <input type="file" id="fileInput" accept=".txt,.pdf,.docx,.doc,.ppt,.pptx" style="display:none">
+                            </div>
+                            <div class="file-info" id="fileInfo">
+                                <span class="name" id="fileName"></span>
+                                <span style="color:rgba(255,255,255,0.6); margin-left:10px;" id="fileSize"></span>
+                            </div>
+                        </div>
+
+                        <!-- Text mode -->
+                        <div class="input-pane" data-pane="text">
+                            <textarea class="text-input" id="textInput"
+                                placeholder="Paste your project inquiry here. For example:&#10;&#10;Project: Nepal Hydropower Plant&#10;Location: Nepal&#10;Net head: 120 m&#10;Design flow: 8 m³/s&#10;Installed capacity: 8000 kW&#10;Voltage: 11 kV / Frequency: 50 Hz&#10;Turbine type: Francis"></textarea>
+                        </div>
+
+                        <div class="submit-row">
+                            <button class="btn btn-primary" id="submitBtn" disabled onclick="analyzeInput()">
+                                <span id="submitText">Analyze Project</span>
+                                <span class="btn-arrow">→</span>
+                            </button>
+                            <span class="sample-link" onclick="loadSample()">Use sample report</span>
+                        </div>
+                    </div>
+
+                    <!-- Right: side info -->
+                    <div class="quote-side">
+                        <h3>AI Engine Capabilities</h3>
+                        <ul class="feat-list">
+                            <li>IBM Watson NLU entity recognition automatically extracts project parameters</li>
+                            <li>watsonx.ai LLM-driven turbine model selection and configuration</li>
+                            <li>Automatic detection of missing criteria with risk warnings</li>
+                            <li>Multi-unit configuration comparison (e.g., 1×10MW vs 2×5MW vs 4×2.5MW)</li>
+                        </ul>
+                        <div class="tip-box">
+                            <strong>TIP</strong>　Include the following in your report whenever possible:
+                            project location, net head, design flow, installed capacity, voltage, and frequency.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== Step 2: Inquiry Confirmation ========== -->
+        <div class="wizard-step" id="wizardStep2">
+            <div class="result-panel show" style="margin-top:0;">
+                <div class="result-header">
+                    <h4>Inquiry Confirmation</h4>
+                    <span class="badge" id="step2Badge">EXTRACTED</span>
+                </div>
+                <div class="result-body">
+                    <div class="result-section">
+                        <h5>Extracted Parameters</h5>
+                        <div class="confirm-grid" id="confirmGrid"></div>
+                    </div>
+
+                    <!-- Conditional: missing-criteria + supplement -->
+                    <div id="supplementWrap"></div>
+
+                    <div class="action-row">
+                        <button class="btn-ghost" type="button" onclick="goBackToStep1()">← Edit / Re-analyze</button>
+                        <button class="btn-ghost" type="button" onclick="advanceTo(3)">Skip &amp; Continue with Defaults</button>
+                        <button class="btn btn-primary" type="button" onclick="advanceTo(3)">
+                            <span>Confirm &amp; Generate Quote</span>
+                            <span class="btn-arrow">→</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== Step 3: Quotation ========== -->
+        <div class="wizard-step" id="wizardStep3">
+            <div class="quote-display">
+                <!-- Left: turbine visual -->
+                <div class="quote-visual">
+                    <div class="turbine-image-frame" id="turbineImageFrame"></div>
+                    <h3 id="turbineName">Francis Turbine</h3>
+                    <div class="turbine-tag" id="turbineTag">Mixed-Flow Reaction</div>
+                </div>
+
+                <!-- Right: quotation details -->
+                <div class="quote-details">
+                    <div class="qd-section" id="qdOverview"></div>
+                    <div class="qd-section" id="qdPricing"></div>
+                    <div class="qd-section" id="qdNotes"></div>
+                </div>
+            </div>
+
+            <div class="action-row" style="background:#fff; padding:24px 36px; border-radius:0 0 4px 4px; border-top:1px solid var(--line); margin-top:0;">
+                <button class="btn-ghost" type="button" onclick="downloadProformaInvoice()">Download Proforma Invoice</button>
+                <button class="btn-ghost" type="button" onclick="advanceTo(2)">← Edit Parameters</button>
+                <button class="btn btn-primary" type="button" onclick="resetWizard()">
+                    <span>New Quote</span>
+                    <span class="btn-arrow">→</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ========== System Status ========== -->
+<section class="status-section" id="status">
+    <div class="container">
+        <div class="section-head">
+            <div class="eyebrow">System Health</div>
+            <h2>Live System Status</h2>
+            <div class="underline"></div>
+            <p>Real-time monitoring of backend API, Watson NLU connectivity, and configuration.</p>
+        </div>
+        <div class="status-grid">
+            <div class="status-card">
+                <div>
+                    <div class="label">API Status</div>
+                    <div class="val" id="apiStatusVal">Checking…</div>
+                </div>
+                <svg class="icon" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <circle cx="12" cy="12" r="9"/>
+                    <path d="M9 12l2 2 4-4"/>
+                </svg>
+            </div>
+            <div class="status-card">
+                <div>
+                    <div class="label">Version</div>
+                    <div class="val" id="versionVal">—</div>
+                </div>
+                <svg class="icon" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <polyline points="16 18 22 12 16 6"/>
+                    <polyline points="8 6 2 12 8 18"/>
+                </svg>
+            </div>
+            <div class="status-card">
+                <div>
+                    <div class="label">LLM Model</div>
+                    <div class="val" id="modelVal" style="font-size:13px;">—</div>
+                </div>
+                <svg class="icon" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <rect x="3" y="3" width="18" height="18" rx="2"/>
+                    <path d="M9 9h6v6H9z"/>
+                </svg>
+            </div>
+            <div class="status-card">
+                <div>
+                    <div class="label">watsonx.ai</div>
+                    <div class="val" id="watsonVal">—</div>
+                </div>
+                <svg class="icon" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M12 2 L 4 7 v10 l 8 5 l 8-5 V7 z"/>
+                </svg>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ========== Footer ========== -->
+<footer>
+    <div class="footer-grid">
+        <div class="footer-brand">
+            <div class="logo-mark">HQ</div>
+            <div class="brand-name">HydroQuote AI</div>
+            <p>
+                Intelligent Hydropower Quotation System<br>
+                Powered by IBM Watson NLU and watsonx.ai<br>
+                OIOteam · IBM Hackathon 2024
+            </p>
+        </div>
+        <div class="footer-col">
+            <h5>Core Services</h5>
+            <ul>
+                <li><a href="#products">Turbine Selection</a></li>
+                <li><a href="#quotation">Instant Quotation</a></li>
+                <li><a href="#">Proforma Invoice</a></li>
+            </ul>
+        </div>
+        <div class="footer-col">
+            <h5>Documentation</h5>
+            <ul>
+                <li><a href="http://localhost:8000/docs" target="_blank">Swagger API</a></li>
+                <li><a href="http://localhost:8000/redoc" target="_blank">ReDoc</a></li>
+                <li><a href="#status">System Status</a></li>
+                <li><a href="#">Changelog</a></li>
+            </ul>
+        </div>
+        <div class="footer-col">
+            <h5>Contact</h5>
+            <div class="footer-contact-line"><span class="lab">Email</span><span>support@hydroquote-ai.com</span></div>
+            <div class="footer-contact-line"><span class="lab">Phone</span><span>+1 (800) 888-0000</span></div>
+            <div class="footer-contact-line"><span class="lab">GitHub</span><span>github.com/oioteam/hydroquote-ai</span></div>
+            <div class="footer-contact-line"><span class="lab">Stack</span><span>IBM Cloud · watsonx.ai</span></div>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <span>© 2024–2026 HydroQuote AI · OIOteam · All Rights Reserved</span>
+        <span>Powered by IBM watsonx · FastAPI · Pydantic V2</span>
+    </div>
+</footer>
+
+<script>
+const API_BASE = 'http://localhost:8000';
+
+/* ============ Wizard state ============ */
+const wizard = {
+    step: 1,
+    inputMode: 'file',
+    selectedFile: null,
+    originalText: '',
+    combinedText: '',
+    supplements: [],
+    analysis: null,
+    filename: '',
+    selectedTurbine: 'francis',
+    supplementMode: 'text',
+    supplementFile: null
+};
+
+/* ============ Turbine selection (client-side) ============ */
+const TURBINE_META = {
+    francis:   { name:'Francis Turbine',   tag:'Mixed-Flow Reaction',     head:'20–300 m',   cap:'≤ 5000 kW', factor:'1.00' },
+    kaplan:    { name:'Kaplan Turbine',    tag:'Axial Adjustable Blade',  head:'3–50 m',     cap:'≤ 5000 kW', factor:'1.12' },
+    bulb:      { name:'Bulb Turbine',      tag:'Horizontal Bulb',         head:'2–30 m',     cap:'≤ 5000 kW', factor:'1.20' },
+    pelton:    { name:'Pelton Turbine',    tag:'High-Head Impulse',       head:'300–2000 m', cap:'≤ 5000 kW', factor:'1.08' },
+    tubular:   { name:'Pumped Storage',    tag:'Reversible Pump-Turbine', head:'100–700 m',  cap:'large',     factor:'—'    },
+    crossflow: { name:'Pumped Storage',    tag:'Reversible Pump-Turbine', head:'100–700 m',  cap:'large',     factor:'—'    }
+};
+
+const TURBINE_IMAGE_FILE = {
+    francis: 'Francis.png',
+    kaplan: 'Kaplan.png',
+    bulb: 'Bulb.png',
+    pelton: 'Pelton.png',
+    tubular: 'Pumped storage.png',
+    crossflow: 'Pumped storage.png'
+};
+
+function getTurbineImageSrc(key) {
+    const filename = TURBINE_IMAGE_FILE[key] || TURBINE_IMAGE_FILE.francis;
+    return `hydroturbine_image/${encodeURIComponent(filename)}`;
+}
+
+function pickTurbine(text) {
+    const t = (text || '').toLowerCase();
+    if (/pumped\s*storage|抽水蓄能/.test(t))  return 'tubular';
+    if (/\bpelton\b/.test(t))                 return 'pelton';
+    if (/\bkaplan\b/.test(t))                 return 'kaplan';
+    if (/\bbulb\b/.test(t))                   return 'bulb';
+    if (/cross.?flow/.test(t))                return 'crossflow';
+    if (/\btubular\b/.test(t))                return 'tubular';
+    if (/\bfrancis\b/.test(t))                return 'francis';
+    const m = t.match(/head[^\d]{0,12}(\d+(?:\.\d+)?)/) ||
+              t.match(/(\d+(?:\.\d+)?)\s*(?:m|meter|metre)s?\s*(?:head|drop|of\s+head)/);
+    if (m) {
+        const h = parseFloat(m[1]);
+        if (h > 300) return 'pelton';
+        if (h < 20)  return 'bulb';
+        return 'francis';
+    }
+    return 'francis';
+}
+
+/* ============ AI-style clarifying questions ============ */
+const QUESTION_MAP = {
+    'System capacity (kW)':         'What is the planned installed capacity in kW or MW?',
+    'Head height (vertical drop)':  'What is the net head (vertical drop) in meters?',
+    'Water flow rate':              'What is the design flow rate in m³/s or L/s?',
+    'Project location':             'Where is the project located (country / region)?',
+    'Turbine type preference':      'Do you have a preferred turbine type (Francis / Kaplan / Pelton / Bulb)?',
+    'Voltage':                      'What is the required output voltage (e.g., 11 kV, 33 kV)?',
+    'Frequency':                    'What grid frequency is required (50 Hz or 60 Hz)?'
+};
+function questionFor(field) {
+    if (QUESTION_MAP[field]) return QUESTION_MAP[field];
+    for (const k of Object.keys(QUESTION_MAP)) {
+        if (field.toLowerCase().includes(k.toLowerCase().split(' ')[0])) return QUESTION_MAP[k];
+    }
+    return `Could you provide more details about: ${field}?`;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    initStatus();
+    initProductImages();
+    initProductTabs();
+    initUpload();
+    initInputModeTabs();
+    initSmoothNav();
+});
+
+/* ============ Status load ============ */
+async function initStatus() {
+    try {
+        const [rootR, healthR, cfgR] = await Promise.all([
+            fetch(`${API_BASE}/`).then(r => r.json()),
+            fetch(`${API_BASE}/health`).then(r => r.json()).catch(e => ({status: 'error'})),
+            fetch(`${API_BASE}/config/info`).then(r => r.json())
+        ]);
+
+        const heroDot = document.querySelector('#heroStatus .status-dot');
+        const heroText = document.getElementById('heroStatusText');
+        const apiVal = document.getElementById('apiStatusVal');
+
+        if (healthR.status === 'healthy') {
+            heroDot.classList.add('healthy');
+            heroText.textContent = 'System Healthy';
+            apiVal.textContent = 'Online';
+            apiVal.style.color = 'var(--green)';
+        } else {
+            heroDot.classList.add('unhealthy');
+            heroText.textContent = 'Service Issue';
+            apiVal.textContent = 'Error';
+            apiVal.style.color = 'var(--red)';
+        }
+        document.getElementById('versionVal').textContent = `v${rootR.version || '2.0.0'}`;
+        document.getElementById('modelVal').textContent = cfgR.llm_config?.model || '—';
+        document.getElementById('watsonVal').textContent =
+            healthR.watsonx_configured ? 'Configured' : 'Optional · Not Set';
+        document.getElementById('watsonVal').style.color =
+            healthR.watsonx_configured ? 'var(--green)' : 'var(--text-mute)';
+    } catch (e) {
+        const heroDot = document.querySelector('#heroStatus .status-dot');
+        const heroText = document.getElementById('heroStatusText');
+        heroDot.classList.add('unhealthy');
+        heroText.textContent = 'API Unreachable · Start backend';
+        document.getElementById('apiStatusVal').textContent = 'Offline';
+        document.getElementById('apiStatusVal').style.color = 'var(--red)';
+    }
+}
+
+/* ============ Product catalog images ============ */
+function initProductImages() {
+    document.querySelectorAll('.product-image[data-turbine-key]').forEach(wrap => {
+        const key = wrap.dataset.turbineKey;
+        const img = wrap.querySelector('.product-photo');
+        if (img && key) {
+            wrap.classList.remove('is-photo-missing');
+            img.src = getTurbineImageSrc(key);
+        }
+    });
+}
+
+/* ============ Product tabs ============ */
+function initProductTabs() {
+    const tabs = document.querySelectorAll('.product-tab');
+    tabs.forEach(t => {
+        t.addEventListener('click', () => {
+            tabs.forEach(x => x.classList.remove('active'));
+            t.classList.add('active');
+            const target = t.dataset.product;
+            document.querySelectorAll('.product-panel').forEach(p => {
+                p.classList.toggle('active', p.dataset.product === target);
+            });
+        });
+    });
+}
+
+/* ============ Step 1: input mode tabs ============ */
+function initInputModeTabs() {
+    const tabs = document.querySelectorAll('#inputModeTabs .pill');
+    tabs.forEach(t => t.addEventListener('click', () => {
+        tabs.forEach(x => x.classList.remove('active'));
+        t.classList.add('active');
+        const mode = t.dataset.mode;
+        wizard.inputMode = mode;
+        document.querySelectorAll('#wizardStep1 .input-pane').forEach(p => {
+            p.classList.toggle('active', p.dataset.pane === mode);
+        });
+        refreshSubmitState();
+    }));
+    document.getElementById('textInput').addEventListener('input', refreshSubmitState);
+}
+
+/* ============ File upload (Step 1) ============ */
+function initUpload() {
+    const area = document.getElementById('uploadArea');
+    const input = document.getElementById('fileInput');
+
+    area.addEventListener('click', () => input.click());
+    input.addEventListener('change', e => onFile(e.target.files[0]));
+
+    ['dragover','dragenter'].forEach(ev => area.addEventListener(ev, e => {
+        e.preventDefault(); area.classList.add('dragover');
+    }));
+    ['dragleave','drop'].forEach(ev => area.addEventListener(ev, e => {
+        e.preventDefault(); area.classList.remove('dragover');
+    }));
+    area.addEventListener('drop', e => {
+        e.preventDefault();
+        if (e.dataTransfer.files[0]) onFile(e.dataTransfer.files[0]);
+    });
+}
+
+function onFile(file) {
+    if (!file) return;
+    wizard.selectedFile = file;
+    document.getElementById('fileName').textContent = file.name;
+    document.getElementById('fileSize').textContent = `${(file.size / 1024).toFixed(1)} KB`;
+    document.getElementById('fileInfo').classList.add('show');
+    refreshSubmitState();
+}
+
+function refreshSubmitState() {
+    const btn = document.getElementById('submitBtn');
+    if (wizard.inputMode === 'file') {
+        btn.disabled = !wizard.selectedFile;
+    } else {
+        btn.disabled = !document.getElementById('textInput').value.trim();
+    }
+}
+
+async function loadSample() {
+    try {
+        const r = await fetch('../sample_project_report.txt');
+        if (!r.ok) throw new Error('not found');
+        const text = await r.text();
+        if (wizard.inputMode === 'text') {
+            document.getElementById('textInput').value = text;
+            refreshSubmitState();
+        } else {
+            const blob = new Blob([text], {type: 'text/plain'});
+            const file = new File([blob], 'sample_project_report.txt', {type: 'text/plain'});
+            onFile(file);
+        }
+    } catch (e) {
+        alert('Could not load sample file. Please paste text or choose a file manually.');
+    }
+}
+
+function readFileAsText(file) {
+    return new Promise((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => resolve(r.result || '');
+        r.onerror = () => reject(r.error);
+        r.readAsText(file);
+    });
+}
+
+/* ============ Wizard navigation ============ */
+function setStep(n) {
+    wizard.step = n;
+    document.querySelectorAll('.wizard-step').forEach(el => {
+        el.classList.toggle('active', el.id === `wizardStep${n}`);
+    });
+    document.querySelectorAll('#wizardSteps .step').forEach(el => {
+        const s = parseInt(el.dataset.step, 10);
+        el.classList.toggle('active', s === n);
+        el.classList.toggle('completed', s < n);
+    });
+    document.getElementById('wizardSteps').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function advanceTo(n) {
+    if (n === 3) renderStep3();
+    setStep(n);
+}
+
+function goBackToStep1() { setStep(1); }
+
+function resetWizard() {
+    wizard.selectedFile = null;
+    wizard.originalText = '';
+    wizard.combinedText = '';
+    wizard.supplements = [];
+    wizard.analysis = null;
+    wizard.filename = '';
+    wizard.selectedTurbine = 'francis';
+    wizard.supplementFile = null;
+    wizard.supplementMode = 'text';
+    document.getElementById('fileInfo').classList.remove('show');
+    document.getElementById('fileInput').value = '';
+    document.getElementById('textInput').value = '';
+    document.getElementById('submitBtn').disabled = true;
+    setStep(1);
+}
+
+async function downloadProformaInvoice() {
+    if (!wizard.analysis) {
+        alert('No quotation data available. Please generate a quote first.');
+        return;
+    }
+    const payload = {
+        filename: wizard.filename || 'inquiry.txt',
+        analysis: wizard.analysis,
+        turbine_key: wizard.selectedTurbine,
+        turbine_meta: TURBINE_META[wizard.selectedTurbine] || TURBINE_META.francis
+    };
+
+    try {
+        const res = await fetch(`${API_BASE}/api/generate-proforma-invoice`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+        if (!res.ok) {
+            let msg = `HTTP ${res.status}`;
+            try {
+                const e = await res.json();
+                if (e && e.detail) msg = e.detail;
+            } catch {}
+            throw new Error(msg);
+        }
+        const blob = await res.blob();
+        const disposition = res.headers.get('content-disposition') || '';
+        const m = disposition.match(/filename=\"?([^\";]+)\"?/i);
+        const filename = m ? m[1] : 'proforma_invoice.docx';
+
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+    } catch (err) {
+        alert(`Failed to generate Proforma Invoice: ${err.message}`);
+    }
+}
+
+/* ============ Step 1 -> Step 2: Analyze ============ */
+async function analyzeInput() {
+    let file, originalText;
+    if (wizard.inputMode === 'file') {
+        if (!wizard.selectedFile) return;
+        file = wizard.selectedFile;
+        try { originalText = await readFileAsText(file); }
+        catch { originalText = `[Binary file: ${file.name}]`; }
+    } else {
+        const text = document.getElementById('textInput').value.trim();
+        if (!text) return;
+        originalText = text;
+        const blob = new Blob([text], {type:'text/plain'});
+        file = new File([blob], 'inquiry.txt', {type:'text/plain'});
+    }
+    wizard.originalText = originalText;
+    wizard.combinedText = originalText;
+    wizard.filename = file.name;
+
+    await callAnalyze(file);
+    if (wizard.analysis) {
+        wizard.selectedTurbine = pickTurbine(wizard.combinedText);
+        renderStep2();
+        setStep(2);
+    }
+}
+
+async function callAnalyze(file) {
+    const btn = document.getElementById('submitBtn');
+    const txt = document.getElementById('submitText');
+    const originalLabel = txt.textContent;
+    btn.disabled = true;
+    txt.innerHTML = '<span class="spinner"></span> Analyzing…';
+
+    try {
+        const fd = new FormData();
+        fd.append('file', file);
+        const res = await fetch(`${API_BASE}/api/analyze-project`, {method:'POST', body: fd});
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || `HTTP ${res.status}`);
+        wizard.analysis = data.analysis;
+        wizard.filename = data.filename || file.name;
+        return data;
+    } catch (err) {
+        alert(`Analysis failed: ${err.message}\n\nMake sure the backend is running at ${API_BASE}.`);
+        wizard.analysis = null;
+        return null;
+    } finally {
+        btn.disabled = false;
+        txt.textContent = originalLabel;
+        refreshSubmitState();
+    }
+}
+
+/* ============ Step 2: render confirmation + supplement ============ */
+function renderStep2() {
+    const a = wizard.analysis;
+    if (!a) return;
+    const conf = a.confidence_level;
+    const confClass = conf === 'High' ? 'confidence-high' : conf === 'Medium' ? 'confidence-medium' : 'confidence-low';
+    const confLabel = conf === 'High' ? 'High (Reliable)' : conf === 'Medium' ? 'Medium (Partial Data)' : 'Low (Insufficient Data)';
+    const meta = TURBINE_META[wizard.selectedTurbine] || TURBINE_META.francis;
+
+    const turbinePreview = `
+        <div class="confirm-turbine-span">
+            <span class="kv-label">Selected Turbine</span>
+            <div class="turbine-image-frame confirm-step2-frame" data-turbine="${escapeHtml(wizard.selectedTurbine)}">
+                <img src="${getTurbineImageSrc(wizard.selectedTurbine)}" alt="${escapeHtml(meta.name)}"
+                     onerror="handleFrameError(this)">
+            </div>
+            <div class="confirm-turbine-meta">
+                <strong>${escapeHtml(meta.name)}</strong>
+                <span class="confirm-turbine-tag">${escapeHtml(meta.tag)}</span>
+            </div>
+        </div>`;
+
+    document.getElementById('confirmGrid').innerHTML = `
+        <div class="kv-row"><span class="kv-label">Project File</span><span class="kv-value">${escapeHtml(wizard.filename)}</span></div>
+        <div class="kv-row"><span class="kv-label">Project Type</span><span class="kv-value">${escapeHtml(a.project_type)}</span></div>
+        <div class="kv-row"><span class="kv-label">Estimated Capacity</span><span class="kv-value accent">${a.estimated_capacity_kw} kW</span></div>
+        <div class="kv-row"><span class="kv-label">Timeline</span><span class="kv-value">${escapeHtml(a.timeline_estimate)}</span></div>
+        <div class="kv-row"><span class="kv-label">Data Completeness</span><span class="kv-value">${a.data_completeness || '100%'}</span></div>
+        <div class="kv-row"><span class="kv-label">Confidence Level</span><span class="kv-value ${confClass}">${confLabel}</span></div>
+        ${turbinePreview}
+        <div class="kv-row"><span class="kv-label">Supplements Submitted</span><span class="kv-value">${wizard.supplements.length}</span></div>
+    `;
+
+    const wrap = document.getElementById('supplementWrap');
+    if (a.missing_criteria && a.missing_criteria.length) {
+        wrap.innerHTML = renderSupplementCard(a.missing_criteria);
+        bindSupplementHandlers();
+    } else {
+        wrap.innerHTML = `
+        <div class="result-section">
+            <div class="alert-box" style="background:#e8f6ed; border-color:var(--green); color:#1c5a3a;">
+                <div class="title" style="color:var(--green);">All Required Information Captured</div>
+                <div>The AI engine has all parameters needed to generate an accurate quotation. Click <strong>Confirm &amp; Generate Quote</strong> to proceed.</div>
+            </div>
+        </div>`;
+    }
+
+    const badge = document.getElementById('step2Badge');
+    badge.textContent = a.missing_criteria && a.missing_criteria.length
+        ? `${a.missing_criteria.length} MISSING`
+        : 'COMPLETE';
+    badge.style.background = a.missing_criteria && a.missing_criteria.length
+        ? 'rgba(214,138,20,0.2)' : 'rgba(46,204,113,0.2)';
+    badge.style.color = a.missing_criteria && a.missing_criteria.length
+        ? 'var(--amber)' : '#2ecc71';
+}
+
+function renderSupplementCard(missing) {
+    const questions = missing.map(f => `<li>${escapeHtml(questionFor(f))}</li>`).join('');
+    const history = wizard.supplements.length ? `
+        <div class="sc-history">
+            <div style="font-size:11px; letter-spacing:2px; text-transform:uppercase; margin-bottom:8px; color:var(--amber); font-weight:600;">Submission History (${wizard.supplements.length})</div>
+            ${wizard.supplements.map((s,i) => `
+                <div class="item"><span class="ts">#${i+1}</span>${escapeHtml(s.text.slice(0, 160))}${s.text.length > 160 ? '…' : ''}</div>
+            `).join('')}
+        </div>` : '';
+
+    return `
+    <div class="result-section">
+        <div class="supplement-card">
+            <div class="sc-title">AI · ${missing.length} Clarifying Question${missing.length>1?'s':''}</div>
+            <ul class="sc-questions">${questions}</ul>
+
+            <div class="sc-tabs" id="scTabs">
+                <button class="pill active" type="button" data-mode="text">Add Text</button>
+                <button class="pill" type="button" data-mode="file">Upload Extra Report</button>
+            </div>
+
+            <div class="sc-pane active" data-pane="text">
+                <textarea id="supplementText" placeholder="Type the missing information here. You can paste a few lines or a paragraph."></textarea>
+            </div>
+            <div class="sc-pane" data-pane="file">
+                <label class="sc-upload" for="supplementFileInput">
+                    <div>Click to choose an additional file (TXT / PDF / DOCX / PPT / PPTX)</div>
+                    <span class="name" id="supplementFileName"></span>
+                </label>
+                <input type="file" id="supplementFileInput" accept=".txt,.pdf,.docx,.doc,.ppt,.pptx" style="display:none">
+            </div>
+
+            <div class="sc-action">
+                <button class="btn-amber" type="button" id="submitSupplementBtn">Add Information &amp; Re-analyze</button>
+                <span style="font-size:12px; color:#8a5a0a;">Your input will be merged with the original inquiry and re-analyzed.</span>
+            </div>
+
+            ${history}
+        </div>
+    </div>`;
+}
+
+function bindSupplementHandlers() {
+    const tabs = document.querySelectorAll('#scTabs .pill');
+    tabs.forEach(t => t.addEventListener('click', () => {
+        tabs.forEach(x => x.classList.remove('active'));
+        t.classList.add('active');
+        const mode = t.dataset.mode;
+        wizard.supplementMode = mode;
+        document.querySelectorAll('#supplementWrap .sc-pane').forEach(p => {
+            p.classList.toggle('active', p.dataset.pane === mode);
+        });
+    }));
+    const fileInput = document.getElementById('supplementFileInput');
+    if (fileInput) {
+        fileInput.addEventListener('change', e => {
+            wizard.supplementFile = e.target.files[0] || null;
+            const nameEl = document.getElementById('supplementFileName');
+            if (nameEl) nameEl.textContent = wizard.supplementFile ? wizard.supplementFile.name : '';
+        });
+    }
+    const btn = document.getElementById('submitSupplementBtn');
+    if (btn) btn.addEventListener('click', submitSupplement);
+}
+
+async function submitSupplement() {
+    const btn = document.getElementById('submitSupplementBtn');
+    let extraStr = '';
+    if (wizard.supplementMode === 'text') {
+        extraStr = (document.getElementById('supplementText').value || '').trim();
+    } else if (wizard.supplementFile) {
+        try { extraStr = await readFileAsText(wizard.supplementFile); }
+        catch { extraStr = `[Could not read ${wizard.supplementFile.name}]`; }
+    }
+    if (!extraStr.trim()) {
+        alert('Please type some information or choose a file before re-analyzing.');
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Re-analyzing…';
+
+    wizard.supplements.push({ text: extraStr, ts: Date.now() });
+    wizard.combinedText = wizard.originalText +
+        '\n\n--- ADDITIONAL INFO ---\n' +
+        wizard.supplements.map(s => s.text).join('\n\n');
+
+    const synthFile = new File([wizard.combinedText], 'combined_inquiry.txt', {type:'text/plain'});
+    await callAnalyze(synthFile);
+
+    if (wizard.analysis) {
+        wizard.selectedTurbine = pickTurbine(wizard.combinedText);
+        wizard.supplementFile = null;
+        renderStep2();
+    } else {
+        btn.disabled = false;
+        btn.textContent = 'Add Information & Re-analyze';
+    }
+}
+
+/* ============ Step 3: render quotation ============ */
+function renderStep3() {
+    const a = wizard.analysis;
+    if (!a) return;
+    const meta = TURBINE_META[wizard.selectedTurbine] || TURBINE_META.francis;
+
+    const frame = document.getElementById('turbineImageFrame');
+    frame.dataset.turbine = wizard.selectedTurbine;
+    frame.innerHTML = `
+        <img src="${getTurbineImageSrc(wizard.selectedTurbine)}" alt="${escapeHtml(meta.name)}"
+             onerror="handleFrameError(this)">
+    `;
+    document.getElementById('turbineName').textContent = meta.name;
+    document.getElementById('turbineTag').textContent = meta.tag;
+
+    const conf = a.confidence_level;
+    const confClass = conf === 'High' ? 'confidence-high' : conf === 'Medium' ? 'confidence-medium' : 'confidence-low';
+    const confLabel = conf === 'High' ? 'High (Reliable)' : conf === 'Medium' ? 'Medium (Partial Data)' : 'Low (Insufficient Data)';
+
+    document.getElementById('qdOverview').innerHTML = `
+        <h4>Project Overview</h4>
+        <div class="kv-row"><span class="kv-label">File Name</span><span class="kv-value">${escapeHtml(wizard.filename)}</span></div>
+        <div class="kv-row"><span class="kv-label">Project Type</span><span class="kv-value">${escapeHtml(a.project_type)}</span></div>
+        <div class="kv-row"><span class="kv-label">Selected Turbine</span><span class="kv-value accent">${meta.name}</span></div>
+        <div class="kv-row"><span class="kv-label">Installed Capacity</span><span class="kv-value accent">${a.estimated_capacity_kw} kW</span></div>
+        <div class="kv-row"><span class="kv-label">Timeline</span><span class="kv-value">${escapeHtml(a.timeline_estimate)}</span></div>
+        <div class="kv-row"><span class="kv-label">Data Completeness</span><span class="kv-value">${a.data_completeness || '100%'}</span></div>
+        <div class="kv-row"><span class="kv-label">Confidence Level</span><span class="kv-value ${confClass}">${confLabel}</span></div>
+    `;
+
+    const p = a.pricing_breakdown;
+    document.getElementById('qdPricing').innerHTML = `
+        <h4>Pricing Breakdown</h4>
+        <div class="kv-row"><span class="kv-label">Equipment</span><span class="kv-value accent">${escapeHtml(p.equipment_cost)}</span></div>
+        <div class="kv-row"><span class="kv-label">Installation</span><span class="kv-value accent">${escapeHtml(p.installation_cost)}</span></div>
+        <div class="kv-row"><span class="kv-label">Engineering</span><span class="kv-value accent">${escapeHtml(p.engineering_cost)}</span></div>
+        <div class="kv-row" style="border-top:2px solid var(--navy); margin-top:8px; padding-top:14px;">
+            <span class="kv-label" style="font-weight:600; color:var(--navy);">Total Quote</span>
+            <span class="kv-value large">${escapeHtml(p.total_estimated_cost)}</span>
+        </div>
+    `;
+
+    const notes = a.notes || [];
+    document.getElementById('qdNotes').innerHTML = notes.length ? `
+        <h4>Analysis Notes</h4>
+        <div class="alert-box">
+            <ul>${notes.map(n => `<li>${escapeHtml(String(n).replace(/^⚠️\s*/, ''))}</li>`).join('')}</ul>
+        </div>
+    ` : '';
+}
+
+/* ============ Helpers ============ */
+function escapeHtml(s) {
+    return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function handleProductImageError(img) {
+    const box = img.closest('.product-image');
+    if (box) box.classList.add('is-photo-missing');
+}
+
+function handleThumbError(img) {
+    const SVG_NS = 'http://www.w3.org/2000/svg';
+    const span = document.createElement('span');
+    span.className = 'thumb-fallback';
+    const svg = document.createElementNS(SVG_NS, 'svg');
+    svg.setAttribute('width', '22');
+    svg.setAttribute('height', '22');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    svg.setAttribute('fill', 'none');
+    svg.setAttribute('stroke', 'currentColor');
+    svg.setAttribute('stroke-width', '1.5');
+    const circle = document.createElementNS(SVG_NS, 'circle');
+    circle.setAttribute('cx', '12'); circle.setAttribute('cy', '12'); circle.setAttribute('r', '3');
+    const path = document.createElementNS(SVG_NS, 'path');
+    path.setAttribute('d', 'M12 2a4 4 0 0 1 4 4c0 2-1 3-2 4M12 22a4 4 0 0 1-4-4c0-2 1-3 2-4M2 12a4 4 0 0 1 4-4c2 0 3 1 4 2M22 12a4 4 0 0 1-4 4c-2 0-3-1-4-2');
+    svg.appendChild(circle); svg.appendChild(path);
+    span.appendChild(svg);
+    img.replaceWith(span);
+}
+
+function handleFrameError(img) {
+    const SVG_NS = 'http://www.w3.org/2000/svg';
+    const frame = img.closest('.turbine-image-frame');
+    const key = (frame && frame.dataset.turbine) || 'francis';
+    const meta = TURBINE_META[key] || TURBINE_META.francis;
+
+    const wrap = document.createElement('div');
+    wrap.className = 'svg-fallback';
+    const svg = document.createElementNS(SVG_NS, 'svg');
+    svg.setAttribute('width', '240');
+    svg.setAttribute('height', '240');
+    svg.setAttribute('viewBox', '0 0 100 100');
+    svg.setAttribute('fill', 'none');
+    svg.setAttribute('stroke', 'currentColor');
+    svg.setAttribute('stroke-width', '1.2');
+
+    const hub = document.createElementNS(SVG_NS, 'circle');
+    hub.setAttribute('cx','50'); hub.setAttribute('cy','50'); hub.setAttribute('r','6');
+    hub.setAttribute('fill','currentColor');
+    svg.appendChild(hub);
+
+    const blades = [
+        ['M50 50 L50 12 Q58 24 50 50 Z', '0.65'],
+        ['M50 50 L88 50 Q76 58 50 50 Z', '0.45'],
+        ['M50 50 L50 88 Q42 76 50 50 Z', '0.65'],
+        ['M50 50 L12 50 Q24 42 50 50 Z', '0.45']
+    ];
+    blades.forEach(([d, op]) => {
+        const p = document.createElementNS(SVG_NS, 'path');
+        p.setAttribute('d', d);
+        p.setAttribute('fill', 'currentColor');
+        p.setAttribute('opacity', op);
+        svg.appendChild(p);
+    });
+
+    const ring = document.createElementNS(SVG_NS, 'circle');
+    ring.setAttribute('cx','50'); ring.setAttribute('cy','50'); ring.setAttribute('r','36');
+    ring.setAttribute('stroke-dasharray','2,3');
+    ring.setAttribute('opacity','0.45');
+    svg.appendChild(ring);
+
+    const label = document.createElementNS(SVG_NS, 'text');
+    label.setAttribute('x','50'); label.setAttribute('y','98');
+    label.setAttribute('font-size','6');
+    label.setAttribute('text-anchor','middle');
+    label.setAttribute('fill','currentColor');
+    label.setAttribute('stroke','none');
+    label.setAttribute('opacity','0.85');
+    label.textContent = meta.name;
+    svg.appendChild(label);
+
+    wrap.appendChild(svg);
+    img.replaceWith(wrap);
+}
+
+/* ============ Smooth nav highlight ============ */
+function initSmoothNav() {
+    const sections = document.querySelectorAll('section[id]');
+    const links = document.querySelectorAll('.nav-menu a');
+    window.addEventListener('scroll', () => {
+        let current = '';
+        sections.forEach(sec => {
+            if (window.scrollY >= sec.offsetTop - 100) current = sec.id;
+        });
+        links.forEach(a => {
+            a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+        });
+    });
+}
+</script>
+</body>
+</html>
