@@ -1,3 +1,10 @@
+<img width="886" height="574" alt="0b29f249ce6a0dd4f424b21ac8caa005" src="https://github.com/user-attachments/assets/a6c96b81-2427-4944-9934-b37c54d2f936" />
+<img width="770" height="546" alt="d6959a117097ae6bfbd85e045a0763e1" src="https://github.com/user-attachments/assets/7af22c82-110b-4da4-b5bd-11aa8be8c681" />
+<img width="785" height="545" alt="aa905915b8e5ec61348137a537b86708" src="https://github.com/user-attachments/assets/51ce6f11-cbc7-42d5-9a5d-2a9684e9ed16" />
+
+
+
+
 # HydroQuote AI - Intelligent Hydro Turbine Quotation System
 
 ## 🎯 Project Overview
