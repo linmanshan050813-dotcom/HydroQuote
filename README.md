@@ -14,6 +14,8 @@
 
 ## 🎯 Project Overview
 
+Video demo: https://youtu.be/y_6NF7iPBeY?si=ydGaUQ_RTbTv7Hjo
+
 HydroQuote AI is an intelligent quotation system that automates the hydro turbine selection and pricing process. It transforms the traditional workflow from **Customer Inquiry → Engineer Design → Supply Chain → Quote** (days/weeks) into an AI-powered instant quotation system using historical case data and prompt engineering.
 
 ### Key Features
