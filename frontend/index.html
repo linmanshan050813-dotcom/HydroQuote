@@ -2541,6 +2541,28 @@ async function callAnalyze(file) {
         if (!res.ok) throw new Error(data.detail || `HTTP ${res.status}`);
         wizard.analysis = data.analysis;
         wizard.filename = data.filename || file.name;
+        // Enrich with LangGraph v2 quote status (same application service as MCP)
+        try {
+            const v2 = await fetch(`${API_BASE}/api/v2/quote`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    request_id: `ui-${Date.now()}`,
+                    tenant_id: 'tenant-demo',
+                    project_text: wizard.combinedText || wizard.originalText || '',
+                }),
+            });
+            if (v2.ok) {
+                wizard.v2 = await v2.json();
+                wizard.analysis.workflow_path = wizard.v2.workflow_path;
+                wizard.analysis.workflow_status = wizard.v2.status;
+                wizard.analysis.quote_id = wizard.v2.quote_id;
+                wizard.analysis.routing_reasons = wizard.v2.routing_reasons;
+                if (wizard.v2.missing_fields && wizard.v2.missing_fields.length) {
+                    wizard.analysis.missing_criteria = wizard.v2.missing_fields;
+                }
+            }
+        } catch (_) { /* non-fatal: legacy analysis still shown */ }
         return data;
     } catch (err) {
         alert(`Analysis failed: ${err.message}\n\nMake sure the backend is running at ${API_BASE}.`);
@@ -2582,6 +2604,9 @@ function renderStep2() {
         <div class="kv-row"><span class="kv-label">Timeline</span><span class="kv-value">${escapeHtml(a.timeline_estimate)}</span></div>
         <div class="kv-row"><span class="kv-label">Data Completeness</span><span class="kv-value">${a.data_completeness || '100%'}</span></div>
         <div class="kv-row"><span class="kv-label">Confidence Level</span><span class="kv-value ${confClass}">${confLabel}</span></div>
+        <div class="kv-row"><span class="kv-label">v2 Workflow Path</span><span class="kv-value">${escapeHtml(a.workflow_path || 'n/a')}</span></div>
+        <div class="kv-row"><span class="kv-label">v2 Status</span><span class="kv-value">${escapeHtml(a.workflow_status || 'n/a')}</span></div>
+        <div class="kv-row"><span class="kv-label">Quote ID</span><span class="kv-value">${escapeHtml(a.quote_id || 'n/a')}</span></div>
         ${turbinePreview}
         <div class="kv-row"><span class="kv-label">Supplements Submitted</span><span class="kv-value">${wizard.supplements.length}</span></div>
     `;

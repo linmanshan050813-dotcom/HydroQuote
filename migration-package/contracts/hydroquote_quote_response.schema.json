@@ -1,0 +1,270 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hydroquote.example/schemas/hydroquote_quote_response_v1.json",
+  "title": "hydroquote_quote MCP tool output v1",
+  "description": "Public result only; internal costs and profit margin are forbidden in this response. Optional workflow_path/workflow_stage/expert_review_state expose the LangGraph Fast/Expert route and progress without exposing internal cost.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 3
+    },
+    "quote_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "needs_input",
+        "preliminary",
+        "review_required",
+        "ready",
+        "rejected",
+        "error"
+      ]
+    },
+    "missing_fields": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "conflicts": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "technical_summary": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "turbine_type": {
+          "type": "string"
+        },
+        "unit_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "unit_capacity_kw": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "notes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "public_quote": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "currency": {
+          "const": "USD"
+        },
+        "equipment": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "description": {
+                "type": "string"
+              },
+              "quantity": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "unit_price_usd": {
+                "type": "string",
+                "pattern": "^[0-9]+\\.[0-9]{2}$"
+              },
+              "line_total_usd": {
+                "type": "string",
+                "pattern": "^[0-9]+\\.[0-9]{2}$"
+              }
+            },
+            "required": [
+              "description",
+              "quantity",
+              "unit_price_usd",
+              "line_total_usd"
+            ]
+          }
+        },
+        "total_usd": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]{2}$"
+        },
+        "quote_type": {
+          "type": "string",
+          "enum": [
+            "preliminary",
+            "firm"
+          ]
+        }
+      },
+      "required": [
+        "currency",
+        "equipment",
+        "total_usd",
+        "quote_type"
+      ]
+    },
+    "pi": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "available": {
+          "type": "boolean"
+        },
+        "download_url": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Authorized short-lived signed URL if available"
+        }
+      },
+      "required": [
+        "available",
+        "download_url"
+      ]
+    },
+    "rule_version": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "error": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "workflow_path": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "fast_quote",
+        "expert_quote",
+        null
+      ],
+      "description": "System-derived routing outcome. Null before classification."
+    },
+    "workflow_stage": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "customer_inquiry",
+        "technical_selection",
+        "engineering_cost",
+        "commercial_quotation",
+        "pi_generation",
+        "completed",
+        null
+      ],
+      "description": "Current global LangGraph stage."
+    },
+    "expert_review_state": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "not_required",
+        "queued",
+        "running",
+        "validated",
+        "awaiting_human",
+        "failed",
+        null
+      ]
+    },
+    "inquiry_summary": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "net_head_m": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "design_flow_m3s": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "installed_capacity_kw": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "number_of_units": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "unit_capacity_kw": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "project_country": {
+          "type": "string"
+        }
+      },
+      "description": "Sanitized technical input returned only if authorized for this quote; never include internal costs or confidential customer information."
+    }
+  },
+  "required": [
+    "schema_version",
+    "request_id",
+    "quote_id",
+    "status",
+    "missing_fields",
+    "conflicts",
+    "warnings",
+    "technical_summary",
+    "public_quote",
+    "pi",
+    "rule_version",
+    "error"
+  ]
+}

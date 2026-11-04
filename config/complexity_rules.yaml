@@ -1,0 +1,43 @@
+version: "2026.11.03-v1"
+# Rule-based Fast vs Expert routing. Final decision is rule check, not LLM.
+
+expert_signals:
+  - id: high_sediment
+    field: sediment_load
+    when: in
+    values: [high, severe, abrasive]
+    reason: "High sediment / abrasion risk requires expert hydraulic and equipment review"
+  - id: seasonal_flow
+    field: flow_variability
+    when: in
+    values: [seasonal, high, extreme]
+    reason: "Seasonal / extreme flow variability requires operations expert review"
+  - id: special_control
+    field: special_control_required
+    when: eq
+    value: true
+    reason: "Special control requirements flagged"
+  - id: customer_expert_request
+    field: customer_requests_expert_review
+    when: eq
+    value: true
+    reason: "Customer explicitly requested expert technical argumentation"
+  - id: ambiguous_turbine_type
+    field: turbine_type_ambiguous
+    when: eq
+    value: true
+    reason: "Multiple turbine types technically feasible without clear preference"
+  - id: boundary_head
+    field: boundary_head_condition
+    when: eq
+    value: true
+    reason: "Head at type boundary / special operating regime"
+  - id: power_capacity_conflict
+    field: hydraulic_power_conflict
+    when: eq
+    value: true
+    reason: "Hydraulic power vs installed capacity conflict"
+
+# If no expert signal matches and required fields present → fast_quote
+# If signals present but cannot classify safely → expert_quote (or human confirm)
+fallback_when_unclassified: expert_quote

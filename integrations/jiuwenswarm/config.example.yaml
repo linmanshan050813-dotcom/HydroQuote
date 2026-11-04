@@ -1,0 +1,9 @@
+# Merge into ~/.jiuwenswarm/config/config.yaml (do not store real secrets here).
+mcp:
+  servers:
+    - name: hydroquote
+      enabled: true
+      transport: streamable-http
+      url: http://127.0.0.1:8000/mcp
+      timeout_s: 60
+      # Inject auth headers at runtime for role=swarm token

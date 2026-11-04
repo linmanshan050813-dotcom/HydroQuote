@@ -1,22 +1,28 @@
 """
 HydroQuote AI - Main Application Entry Point
-FastAPI application with secure configuration management
+FastAPI compatibility layer + LangGraph/MCP (v2).
 """
 from fastapi import FastAPI, Depends, HTTPException, status, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
 import logging
-from typing import Dict, Any, Union
+from typing import Dict, Any, Union, Optional
 import PyPDF2
 import docx
 from pptx import Presentation
 import io
 import re
-import random
+import uuid
 from datetime import datetime
 from docx.shared import Pt
 
 from app.core.config import get_settings, Settings
+from hydroquote.application.quotation_service import QuotationApplication
+from hydroquote.mcp.server import create_mcp_server, set_service
+
+# Shared application service (FastAPI + MCP)
+quotation_app = QuotationApplication()
+set_service(quotation_app)
 
 # Configure logging
 logging.basicConfig(
@@ -59,17 +65,28 @@ def create_application() -> FastAPI:
     logger.info(f"Watsonx Model: {settings.watsonx_model}")
     logger.info(f"CORS Origins: {settings.cors_origins}")
     
-    # NEVER log sensitive information
-    # ❌ DON'T: logger.info(f"API Key: {settings.watsonx_api_key}")
-    # ✅ DO: logger.info("API Key: [CONFIGURED]")
-    logger.info("Watsonx API Key: [CONFIGURED]")
-    logger.info("Watsonx Project ID: [CONFIGURED]")
+    logger.info("Secrets: [REDACTED]")
+    logger.info("Orchestrator: LangGraph + domain pricing engine")
     
     return app
 
 
 # Create the application instance
 app = create_application()
+
+# Mount MCP Streamable HTTP when SDK provides ASGI app
+try:
+    _mcp = create_mcp_server(quotation_app)
+    if hasattr(_mcp, "streamable_http_app"):
+        app.mount("/mcp", _mcp.streamable_http_app())
+        logger.info("Mounted MCP Streamable HTTP at /mcp")
+    elif hasattr(_mcp, "sse_app"):
+        app.mount("/mcp", _mcp.sse_app())
+        logger.info("Mounted MCP SSE at /mcp")
+    else:
+        logger.warning("FastMCP ASGI mount not available; use hydroquote.mcp.server standalone")
+except Exception as exc:  # noqa: BLE001
+    logger.warning("MCP mount skipped: %s", exc)
 
 
 @app.get("/", tags=["Health"])
@@ -258,64 +275,65 @@ def analyze_project_and_generate_pricing(text: str) -> Dict[str, Any]:
         project_type = "Micro Hydro System"
     elif "large" in text_lower or "industrial" in text_lower:
         project_type = "Industrial Hydro Plant"
-    
-    # Calculate pricing based on capacity and project type
-    base_price_per_kw = 1500  # Standard rate
-    if "micro" in text_lower:
-        base_price_per_kw = 2000  # Higher per-kW cost for smaller systems
-    elif "industrial" in text_lower:
-        base_price_per_kw = 1200  # Lower per-kW cost for larger systems
-    
-    # Calculate cost components
-    equipment_cost = capacity_kw * base_price_per_kw
-    installation_cost = equipment_cost * 0.3  # 30% of equipment cost
-    engineering_cost = equipment_cost * 0.15  # 15% of equipment cost
-    total_cost = equipment_cost + installation_cost + engineering_cost
-    
-    # Add realistic variation (±5%)
-    variation = random.uniform(0.95, 1.05)
-    total_cost = int(total_cost * variation)
-    
-    # Determine confidence level based on missing criteria
+
+    # Legacy sync helper retained for structure; async path uses QuotationApplication.
+    # Deterministic placeholder totals (no random) — prefer /api/v2/quote for full engine.
+    from decimal import Decimal
+    from hydroquote.domain.inquiry import extract_inquiry_from_text, normalize_units_config
+    from hydroquote.domain.selection import build_fast_technical_package
+    from hydroquote.domain.pricing import PricingEngine
+
+    inquiry = normalize_units_config(extract_inquiry_from_text(text))
+    engine = PricingEngine()
+    commercial = None
+    equipment_cost = Decimal("0")
+    notes = [
+        "v2 deterministic domain engine (no random.uniform)",
+        "Firm commercial requires approved risk_reserve_rate via QuotationApplication",
+    ]
+    notes.extend(warnings)
+    try:
+        if inquiry.net_head_m and inquiry.design_flow_m3s and inquiry.installed_capacity_kw:
+            tech = build_fast_technical_package(inquiry)
+            # Temporary approved risk for legacy UI display only when complete
+            inquiry.risk_reserve_rate = Decimal("0.05")
+            inquiry.risk_reserve_rate_approved = True
+            bd = engine.compute_breakdown(inquiry, tech)
+            equipment_cost = bd.main_equipment_base_cost
+            commercial = bd.commercial_quotation
+            missing_criteria = []
+        else:
+            commercial = None
+    except Exception as exc:  # noqa: BLE001
+        notes.append(f"domain_engine_note:{type(exc).__name__}")
+
     if len(missing_criteria) == 0:
         confidence_level = "High"
     elif len(missing_criteria) <= 2:
         confidence_level = "Medium"
     else:
         confidence_level = "Low"
-    
-    # Build notes list
-    notes = [
-        "This is a preliminary estimate based on document analysis",
-        "Final pricing requires detailed site assessment",
-        "Prices may vary based on location and specific requirements"
-    ]
-    
-    # Add warnings to notes
-    notes.extend(warnings)
-    
-    # Return structured pricing analysis
+
+    total_cost = commercial if commercial is not None else equipment_cost
     result = {
         "project_type": project_type,
         "estimated_capacity_kw": capacity_kw,
         "pricing_breakdown": {
             "equipment_cost": f"${equipment_cost:,.2f}",
-            "installation_cost": f"${installation_cost:,.2f}",
-            "engineering_cost": f"${engineering_cost:,.2f}",
-            "total_estimated_cost": f"${total_cost:,.2f}"
+            "installation_cost": "$0.00",
+            "engineering_cost": "$0.00",
+            "total_estimated_cost": f"${total_cost:,.2f}" if total_cost is not None else "TBD",
         },
         "timeline_estimate": "12-18 months",
         "confidence_level": confidence_level,
-        "notes": notes
+        "notes": notes,
+        "engine": "hydroquote_v2_domain",
     }
-    
-    # Add missing criteria if any
     if missing_criteria:
         result["missing_criteria"] = missing_criteria
         result["data_completeness"] = f"{max(0, 100 - len(missing_criteria) * 20)}%"
     else:
         result["data_completeness"] = "100%"
-    
     return result
 
 
@@ -520,6 +538,62 @@ async def generate_proforma_invoice(payload: Dict[str, Any]) -> StreamingRespons
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to generate proforma invoice: {str(e)}"
         )
+
+
+@app.post("/api/v2/quote", tags=["Quotation v2"])
+async def create_quote_v2(payload: Dict[str, Any]) -> Dict[str, Any]:
+    """Create quote via LangGraph QuotationApplication (same service as MCP)."""
+    request_id = payload.get("request_id") or f"web-{uuid.uuid4().hex[:10]}"
+    tenant_id = payload.get("tenant_id") or "tenant-demo"
+    # tenant_id from client is ignored for auth in production; MVP accepts demo tenant
+    try:
+        return await quotation_app.create(
+            tenant_id=tenant_id,
+            request_id=request_id,
+            project_text=payload.get("project_text"),
+            parameters=payload.get("parameters"),
+            pi_fields=payload.get("pi_fields"),
+            include_pi=bool(payload.get("include_pi")),
+        )
+    except Exception as e:
+        logger.error("v2 quote failed: %s", e)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/v2/quote/{quote_id}", tags=["Quotation v2"])
+async def get_quote_v2(quote_id: str, tenant_id: str = "tenant-demo") -> Dict[str, Any]:
+    try:
+        return quotation_app.get(tenant_id=tenant_id, quote_id=quote_id, role="customer")
+    except KeyError:
+        raise HTTPException(status_code=404, detail="quote_not_found")
+
+
+@app.post("/api/v2/quote/{quote_id}/revise", tags=["Quotation v2"])
+async def revise_quote_v2(quote_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    tenant_id = payload.get("tenant_id") or "tenant-demo"
+    try:
+        return await quotation_app.revise(
+            tenant_id=tenant_id,
+            request_id=payload.get("request_id") or f"rev-{uuid.uuid4().hex[:8]}",
+            quote_id=quote_id,
+            revisions=payload.get("revisions") or payload.get("parameters"),
+            project_text=payload.get("project_text"),
+            include_pi=bool(payload.get("include_pi")),
+        )
+    except KeyError:
+        raise HTTPException(status_code=404, detail="quote_not_found")
+
+
+@app.get("/api/v2/quote/{quote_id}/pi", tags=["Quotation v2"])
+async def download_pi_v2(quote_id: str, tenant_id: str = "tenant-demo") -> StreamingResponse:
+    blob = quotation_app.get_pi_bytes(quote_id, tenant_id)
+    if not blob:
+        raise HTTPException(status_code=404, detail="pi_not_available")
+    return StreamingResponse(
+        io.BytesIO(blob),
+        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        headers={"Content-Disposition": f'attachment; filename="PI_{quote_id}.docx"'},
+    )
 
 
 @app.exception_handler(Exception)

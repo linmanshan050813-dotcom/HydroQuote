@@ -1,0 +1,35 @@
+version: "2026.11.03-v1"
+currency: USD
+after_sales_rate: "0.08"
+commercial_multiplier: "2.40"
+personnel_cost_per_1000kw: "20000"
+
+turbine_type_factors:
+  Francis: "1.00"
+  Pelton: "1.08"
+  Kaplan: "1.12"
+  Tubular: "1.15"
+  Bulb: "1.20"
+  Cross-flow: "0.85"
+
+automation_governor_factors:
+  Basic: "1.00"
+  Standard: "1.10"
+  Advanced: "1.20"
+
+automation_system_base:
+  Basic: "1900"
+  Standard: "10000"
+  Advanced: "20000"
+
+defaults:
+  pressure_factor: "1.00"
+  accessory_factor: "1.00"
+  voltage_factor: "1.00"
+  speed_factor: "1.00"
+  frequency_factors:
+    "50": "1.00"
+    "60": "1.05"
+
+# Risk reserve must be explicitly approved; null means review_required for firm quotes
+default_risk_reserve_rate: null

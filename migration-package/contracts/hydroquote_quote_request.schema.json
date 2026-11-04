@@ -1,0 +1,265 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hydroquote.example/schemas/hydroquote_quote_request_v1.json",
+  "title": "hydroquote_quote MCP tool input v1",
+  "description": "Input schema of the single publicly exposed MCP tool. This is NOT a raw HTTP POST body for /mcp; use an MCP client to call tools/call. The server chooses Fast Quote or Expert Quote internally; clients cannot force the route.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "operation": {
+      "type": "string",
+      "enum": [
+        "create",
+        "revise",
+        "get",
+        "submit_review"
+      ]
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 128
+    },
+    "quote_id": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 128
+    },
+    "project_text": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80000
+    },
+    "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "project_name": {
+          "type": "string",
+          "maxLength": 250
+        },
+        "project_country": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "project_location": {
+          "type": "string",
+          "maxLength": 250
+        },
+        "customer_company": {
+          "type": "string",
+          "maxLength": 250
+        },
+        "customer_contact": {
+          "type": "string",
+          "maxLength": 250
+        },
+        "customer_email": {
+          "type": "string",
+          "format": "email"
+        },
+        "net_head_m": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "design_flow_m3s": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "installed_capacity_kw": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "number_of_units": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "unit_capacity_kw": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "generator_voltage_v": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "frequency_hz": {
+          "type": "number",
+          "enum": [
+            50,
+            60
+          ]
+        },
+        "automation_level": {
+          "type": "string",
+          "enum": [
+            "Basic",
+            "Standard",
+            "Advanced"
+          ]
+        },
+        "turbine_preference": {
+          "type": "string",
+          "enum": [
+            "Francis",
+            "Pelton",
+            "Kaplan",
+            "Tubular",
+            "Bulb",
+            "Cross-flow"
+          ]
+        }
+      }
+    },
+    "revisions": {
+      "type": "object",
+      "description": "Incremental fields for revise; validate against the parameter model in server code."
+    },
+    "include_pi": {
+      "type": "boolean",
+      "default": false
+    },
+    "currency": {
+      "const": "USD",
+      "default": "USD"
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "decision": {
+          "type": "string",
+          "enum": [
+            "approved",
+            "rejected",
+            "needs_changes"
+          ]
+        },
+        "reviewer_note": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        },
+        "approved_rule_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": [
+        "decision",
+        "reviewer_note"
+      ]
+    }
+  },
+  "required": [
+    "schema_version",
+    "operation",
+    "request_id"
+  ],
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "create"
+          }
+        },
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "anyOf": [
+          {
+            "required": [
+              "project_text"
+            ]
+          },
+          {
+            "required": [
+              "parameters"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "enum": [
+              "get",
+              "revise",
+              "submit_review"
+            ]
+          }
+        },
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "required": [
+          "quote_id"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "revise"
+          }
+        },
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "anyOf": [
+          {
+            "required": [
+              "revisions"
+            ]
+          },
+          {
+            "required": [
+              "parameters"
+            ]
+          },
+          {
+            "required": [
+              "project_text"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "submit_review"
+          }
+        },
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "required": [
+          "review"
+        ]
+      }
+    }
+  ],
+  "x-auth-scopes": {
+    "create": "quote:create",
+    "revise": "quote:create + quote:read",
+    "get": "quote:read",
+    "submit_review": "review:write (internal only; require separate human approval)"
+  }
+}

@@ -1,13 +1,18 @@
 # HydroQuote AI - Python Dependencies
+# Prefer: pip install -r requirements-v2.txt (pinned v2 stack)
 # Install with: pip install -r requirements.txt
 
 # ============================================
-# Core Framework
+# Core Framework + v2 orchestration
 # ============================================
 fastapi>=0.104.0
 uvicorn[standard]>=0.24.0
 pydantic>=2.5.0
 pydantic-settings>=2.1.0
+langgraph>=1.0.0
+langchain-core>=0.3.0
+mcp>=1.0.0
+pyyaml>=6.0.1
 
 # ============================================
 # IBM watsonx.ai Integration

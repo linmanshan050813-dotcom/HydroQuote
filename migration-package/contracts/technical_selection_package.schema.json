@@ -1,0 +1,250 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Internal TechnicalSelectionPackage v2 - shared by Fast Quote and JiuwenSwarm Expert Quote",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "2.0"
+    },
+    "quote_id": {
+      "type": "string",
+      "minLength": 3
+    },
+    "route": {
+      "enum": [
+        "fast_quote",
+        "expert_quote"
+      ]
+    },
+    "recommended_turbine_type": {
+      "enum": [
+        "Francis",
+        "Pelton",
+        "Kaplan",
+        "Tubular",
+        "Bulb",
+        "Cross-flow"
+      ]
+    },
+    "unit_configuration": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "unit_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "unit_capacity_kw": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "alternative_configurations": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "unit_count",
+        "unit_capacity_kw",
+        "alternative_configurations"
+      ]
+    },
+    "hydraulic_check": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "net_head_m": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "design_flow_m3s": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "assumed_efficiency": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "exclusiveMinimum": 0,
+          "maximum": 1
+        },
+        "estimated_power_kw": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "consistency": {
+          "enum": [
+            "consistent",
+            "inconsistent",
+            "unverified"
+          ]
+        },
+        "notes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "net_head_m",
+        "design_flow_m3s",
+        "assumed_efficiency",
+        "estimated_power_kw",
+        "consistency",
+        "notes"
+      ]
+    },
+    "equipment_scope": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "Hydro Turbine",
+          "Generator and Exciter / AVR",
+          "Speed Governor",
+          "Inlet Valve",
+          "Automation System"
+        ]
+      },
+      "minItems": 5,
+      "maxItems": 5
+    },
+    "automation_scope": {
+      "type": "string"
+    },
+    "optional_upgrades": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "assumptions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "risk_notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "expert_opinions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "role": {
+            "enum": [
+              "Hydraulic Expert",
+              "Equipment Expert",
+              "Operations Expert",
+              "Risk Reviewer"
+            ]
+          },
+          "analysis": {
+            "type": "string",
+            "minLength": 1
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "role",
+          "analysis",
+          "evidence"
+        ]
+      }
+    },
+    "discussion_summary": {
+      "type": "string"
+    },
+    "cross_review": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "source_provenance": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "readiness": {
+      "enum": [
+        "preliminary_ready",
+        "firm_ready",
+        "needs_human_review"
+      ]
+    },
+    "technical_approval_required": {
+      "type": "boolean"
+    },
+    "rule_version": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "quote_id",
+    "route",
+    "recommended_turbine_type",
+    "unit_configuration",
+    "hydraulic_check",
+    "equipment_scope",
+    "automation_scope",
+    "optional_upgrades",
+    "assumptions",
+    "risk_notes",
+    "expert_opinions",
+    "discussion_summary",
+    "cross_review",
+    "source_provenance",
+    "readiness",
+    "technical_approval_required",
+    "rule_version"
+  ],
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "route": {
+            "const": "expert_quote"
+          }
+        },
+        "required": [
+          "route"
+        ]
+      },
+      "then": {
+        "properties": {
+          "expert_opinions": {
+            "minItems": 4,
+            "maxItems": 4
+          },
+          "discussion_summary": {
+            "minLength": 1
+          },
+          "cross_review": {
+            "minItems": 1
+          }
+        }
+      }
+    }
+  ],
+  "description": "Expert mode additionally requires exactly one opinion from EACH of the four roles; application-level validator must enforce distinct roles and actual provenance. Numerical correctness and rules need extra Python validation."
+}

@@ -273,23 +273,25 @@ This markup strategy covers:
 
 ## 🚀 Technology Stack
 
-### Core Technologies
-- **AI/ML**: IBM watsonx.ai API (All logic via LLM prompts)
-- **Backend**: Python 3.11+ with FastAPI
-- **Containerization**: Docker
-- **API Documentation**: OpenAPI/Swagger
+### Core Technologies (v2 — current)
+- **Orchestrator**: LangGraph StateGraph (sole top-level workflow)
+- **Agent Core**: openJiuwen WorkflowAgent adapters (inquiry / fast explain / quotation text)
+- **Expert Quote**: JiuwenSwarm Team via CLI adapter (complex technical selection only)
+- **Pricing**: Deterministic Python `Decimal` domain engine (not LLM arithmetic)
+- **External API**: One MCP tool `hydroquote_quote` at `/mcp`
+- **Backend**: FastAPI compatibility layer + `/api/v2/quote*`
+- See `docs/ARCHITECTURE.md` and `requirements-v2.txt`
+
+### Legacy (deprecated)
+IBM watsonx prompt-only pipeline documentation below is **legacy** and must not be treated as the live pricing authority.
 
 ### Key Dependencies
 ```
-fastapi>=0.104.0
-uvicorn>=0.24.0
-pydantic>=2.5.0
-ibm-watsonx-ai>=0.1.0
-python-multipart>=0.0.6
-jinja2>=3.1.2
+fastapi, uvicorn, pydantic, langgraph, mcp, pyyaml, python-docx
+# openjiuwen / workswarm: use Python 3.11–3.13 (blocked on 3.14)
 ```
 
-**Note**: Core business logic is embedded in LLM prompts.
+**Note**: Money comes from `hydroquote/domain/pricing.py` + `config/pricing_rules.yaml`.
 
 ---
 
