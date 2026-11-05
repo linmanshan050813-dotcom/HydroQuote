@@ -24,12 +24,23 @@ class Settings(BaseSettings):
     watson_nlu_url: str
 
     # ============================================
-    # IBM watsonx.ai Configuration (Optional - for future use)
+    # IBM watsonx.ai Configuration (first LLM fallback)
     # ============================================
     watsonx_api_key: Optional[str] = None
     watsonx_project_id: Optional[str] = None
     watsonx_url: str = "https://us-south.ml.cloud.ibm.com"
     watsonx_model: str = "ibm/granite-13b-chat-v2"
+
+    # ============================================
+    # OpenAI / DeepSeek (LLM fallback chain)
+    # ============================================
+    openai_api_key: Optional[str] = None
+    openai_model: str = "gpt-4o-mini"
+    openai_api_base: str = "https://api.openai.com/v1"
+    deepseek_api_key: Optional[str] = None
+    deepseek_model: str = "deepseek-chat"
+    deepseek_api_base: str = "https://api.deepseek.com"
+    llm_fallback_order: str = "ibm,openai,deepseek"
 
     # ============================================
     # Application Configuration
