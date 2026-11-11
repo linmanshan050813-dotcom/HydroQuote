@@ -64,6 +64,10 @@ graph TB
 - ✅ **Embedded Pricing Rules** - Formulas hardcoded in prompts
 - ✅ **Single API Call** - Complete quotation in one request
 
+## Swarm Architecture
+<img width="415" height="280" alt="image" src="https://github.com/user-attachments/assets/187d42ac-82d3-4194-9b6d-04b47573becf" />
+
+
 ### Five-Prompt LLM Pipeline
 
 All processing is handled through specialized LLM prompts for a streamlined stateless workflow.
