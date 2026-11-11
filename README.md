@@ -280,7 +280,8 @@ This markup strategy covers:
 - **Pricing**: Deterministic Python `Decimal` domain engine (not LLM arithmetic)
 - **External API**: One MCP tool `hydroquote_quote` at `/mcp`
 - **Backend**: FastAPI compatibility layer + `/api/v2/quote*`
-- See `docs/ARCHITECTURE.md` and `requirements-v2.txt`
+- **Layout**: `app/` (HTTP), `hydroquote/` (workflow and pricing), `config/` (rule files), `frontend/` (demo page)
+- Install with `requirements-v2.txt`
 
 ### Legacy (deprecated)
 IBM watsonx prompt-only pipeline documentation below is **legacy** and must not be treated as the live pricing authority.
@@ -397,9 +398,8 @@ All AI responses follow structured JSON format:
 ## 📦 Installation & Deployment
 
 ### Prerequisites
-- Docker 24.0+
-- Docker Compose 2.20+
-- IBM watsonx.ai API credentials
+- Python 3.11+ (3.14 can run the rule engine; the JiuwenSwarm CLI expects 3.11–3.13)
+- IBM watsonx.ai API credentials, or another provider key listed in `.env.example`
 
 ### Quick Start
 
@@ -412,19 +412,17 @@ cd hydroquote-ai
 2. **Configure Environment**
 ```bash
 cp .env.example .env
-# Edit .env with your IBM watsonx.ai credentials
+# Edit .env with your model credentials
 ```
 
-3. **Build and Run**
+3. **Install and run**
 ```bash
-# Using Docker
-docker build -t hydroquote-ai .
-docker run -d -p 8000:8000 --env-file .env hydroquote-ai
-
-# Or run directly
-pip install -r requirements.txt
-uvicorn app.main:app --host 0.0.0.0 --port 8000
+pip install -r requirements-v2.txt
+python start_backend.py
+python serve_frontend.py
 ```
+
+On Windows, `start_demo.bat` starts both processes. Backend is http://localhost:8000 and the demo page is http://localhost:3000.
 
 4. **Access Application**
 - API: http://localhost:8000
@@ -588,27 +586,15 @@ OUTPUT: Return JSON with itemized breakdown
 
 ---
 
-## 🧪 Testing
+## 🧪 Run the demo
 
-### Run Tests
 ```bash
-# Unit tests
-pytest tests/unit/
-
-# Integration tests
-pytest tests/integration/
-
-# API tests
-pytest tests/api/
-
-# All tests with coverage
-pytest --cov=app tests/
+pip install -r requirements-v2.txt
+python start_backend.py
+python serve_frontend.py
 ```
 
-### Test Coverage Goals
-- Unit tests: >80%
-- Integration tests: >70%
-- API endpoint tests: 100%
+`config/pricing_rules.yaml` is the money rules. `config/complexity_rules.yaml` chooses Fast Quote or Expert Quote. `hydroquote/domain/pricing.py` is the only code that computes prices.
 
 ---
 
@@ -808,7 +794,9 @@ For questions or support:
 
 ---
 
-## 📖 Additional Documentation
+## 📖 Where to look
 
-- [`ARCHITECTURE_REDESIGN_PLAN.md`](ARCHITECTURE_REDESIGN_PLAN.md) - Detailed implementation plan for the prompt-driven architecture
-- [`Planning Docs/`](Planning Docs/) - Original Chinese planning documents with pricing rules and workflow design
+- `hydroquote/orchestration/graph.py` — the only top-level workflow
+- `hydroquote/domain/pricing.py` — deterministic pricing
+- `hydroquote/mcp/server.py` — the single external tool, `hydroquote_quote`
+- `config/` — versioned pricing and routing rules

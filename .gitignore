@@ -250,6 +250,32 @@ logs/
 *.log
 bob_sessions/
 
+# Local reference material. Present on disk, not part of the runtime tree.
+/docs/
+/migration-package/
+/Planning Docs/
+/integrations/
+/ARCHITECTURE_REDESIGN_PLAN.md
+/BUG_REPORT.md
+/DELIVERABLE_IBM_BOB_WATSONX_USAGE.md
+/DEMO_QUICKSTART.md
+/FILE_UPLOAD_GUIDE.md
+/FRONTEND_GUIDE.md
+/PROJECT_STRUCTURE.md
+/SECURITY.md
+/SETUP_GUIDE.md
+/TESTING_GUIDE.md
+/Dockerfile
+/docker-compose.yml
+/incomplete_project_report.txt
+/minimal_project_report.txt
+/pytest.ini
+/requirements-v2-freeze.txt
+/requirements.txt
+/run_tests.py
+/test_missing_criteria.py
+/test_upload.py
+
 # Database files (if added later)
 *.db
 *.sqlite
