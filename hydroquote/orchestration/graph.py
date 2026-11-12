@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import logging
+import time
 import uuid
 from typing import Any, Literal, Optional
 
@@ -18,9 +20,12 @@ from hydroquote.domain.pi import build_pi_document, pi_readiness
 from hydroquote.domain.pricing import PricingEngine
 from hydroquote.orchestration.approval import needs_price_gate, needs_technical_gate
 from hydroquote.orchestration.cost_fanout import parallel_equipment_costs
+from hydroquote.orchestration.latency import attribute_wait
 from hydroquote.orchestration.router import route_after_inquiry
 from hydroquote.orchestration.state import HydroQuoteState
 from hydroquote.swarm.adapter import SwarmAdapter
+
+logger = logging.getLogger(__name__)
 
 
 def _trace(state: HydroQuoteState, event: str, **extra: Any) -> list[dict]:
@@ -28,6 +33,25 @@ def _trace(state: HydroQuoteState, event: str, **extra: Any) -> list[dict]:
     item = {"event": event, **extra}
     trace.append(item)
     return trace
+
+
+def _timed_node(name: str, fn):
+    """Attach wall-clock milliseconds to the node's last trace event."""
+
+    async def wrapped(state: HydroQuoteState) -> dict:
+        started = time.perf_counter()
+        out = await fn(state)
+        elapsed_ms = round((time.perf_counter() - started) * 1000, 1)
+        trace = out.get("trace")
+        if trace:
+            trace[-1]["elapsed_ms"] = elapsed_ms
+            trace[-1]["node"] = name
+        else:
+            out["trace"] = _trace(state, name, elapsed_ms=elapsed_ms, node=name)
+        return out
+
+    wrapped.__name__ = f"{name}_timed"
+    return wrapped
 
 
 def build_hydroquote_graph(
@@ -69,6 +93,8 @@ def build_hydroquote_graph(
                 "inquiry_agent_core",
                 backend=result.get("agent_core_backend"),
                 missing=result["missing_fields"],
+                llm_elapsed_ms=result.get("llm_elapsed_ms"),
+                llm_attempts=result.get("llm_attempts"),
             ),
         }
 
@@ -149,6 +175,7 @@ def build_hydroquote_graph(
                     state,
                     "expert_quote_failed",
                     error=swarm_result.get("error"),
+                    stages=swarm_result.get("stages") or [],
                     # Never fabricate Fast Quote on Swarm failure
                     no_fast_fallback=True,
                 ),
@@ -162,7 +189,12 @@ def build_hydroquote_graph(
             "status": "review_required"
             if swarm_result.get("review_required")
             else state.get("status", "processing"),
-            "trace": _trace(state, "expert_quote_ok", expert_run_id=swarm_result.get("expert_run_id")),
+            "trace": _trace(
+                state,
+                "expert_quote_ok",
+                expert_run_id=swarm_result.get("expert_run_id"),
+                stages=swarm_result.get("stages") or [],
+            ),
         }
 
     async def validate_technical_node(state: HydroQuoteState) -> dict:
@@ -308,15 +340,15 @@ def build_hydroquote_graph(
             }
 
     builder = StateGraph(HydroQuoteState)
-    builder.add_node("inquiry", inquiry_node)
-    builder.add_node("validate", validate_inquiry_node)
-    builder.add_node("annotate_route", annotate_route)
-    builder.add_node("fast_quote", fast_quote_node)
-    builder.add_node("expert_quote", expert_quote_node)
-    builder.add_node("technical_validation", validate_technical_node)
-    builder.add_node("engineering_cost", engineering_cost_node)
-    builder.add_node("commercial", commercial_node)
-    builder.add_node("pi", pi_node)
+    builder.add_node("inquiry", _timed_node("inquiry", inquiry_node))
+    builder.add_node("validate", _timed_node("validate", validate_inquiry_node))
+    builder.add_node("annotate_route", _timed_node("annotate_route", annotate_route))
+    builder.add_node("fast_quote", _timed_node("fast_quote", fast_quote_node))
+    builder.add_node("expert_quote", _timed_node("expert_quote", expert_quote_node))
+    builder.add_node("technical_validation", _timed_node("technical_validation", validate_technical_node))
+    builder.add_node("engineering_cost", _timed_node("engineering_cost", engineering_cost_node))
+    builder.add_node("commercial", _timed_node("commercial", commercial_node))
+    builder.add_node("pi", _timed_node("pi", pi_node))
 
     builder.add_edge(START, "inquiry")
     builder.add_edge("inquiry", "validate")
@@ -395,5 +427,16 @@ async def run_quotation_graph(
         "pi_fields": pi_fields or {},
     }
     config = {"configurable": {"thread_id": thread_id}}
-    result = await graph.ainvoke(init, config=config)
+    result = dict(await graph.ainvoke(init, config=config))
+    report = attribute_wait(list(result.get("trace") or []))
+    result["latency"] = report
+    if report.get("slow"):
+        logger.warning(
+            "slow quote %s cause=%s stage=%s ms=%s share=%s",
+            quote_id,
+            report.get("cause"),
+            report.get("dominant_stage"),
+            report.get("dominant_ms"),
+            report.get("share"),
+        )
     return result  # type: ignore[return-value]
