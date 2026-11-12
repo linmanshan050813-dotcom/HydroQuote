@@ -6,7 +6,8 @@ import json
 import logging
 import os
 import re
-from dataclasses import dataclass
+import time
+from dataclasses import dataclass, field
 from typing import Any, Optional
 
 import httpx
@@ -26,6 +27,8 @@ class LLMResult:
     text: str
     provider: str
     model: str
+    elapsed_ms: float = 0
+    attempts: list[dict[str, Any]] = field(default_factory=list)
 
 
 def _env(name: str, default: str = "") -> str:
@@ -56,12 +59,15 @@ class FallbackLLM:
 
     async def complete(self, system: str, user: str) -> LLMResult:
         errors: list[str] = []
+        attempts: list[dict[str, Any]] = []
+        started = time.perf_counter()
         for name in self.order:
+            attempt_started = time.perf_counter()
             try:
                 if name == "ibm":
-                    return await self._ibm(system, user)
-                if name in ("openai", "chatgpt"):
-                    return await self._openai_compatible(
+                    result = await self._ibm(system, user)
+                elif name in ("openai", "chatgpt"):
+                    result = await self._openai_compatible(
                         provider="openai",
                         api_key=_env("OPENAI_API_KEY"),
                         base_url=_env("OPENAI_API_BASE", "https://api.openai.com/v1"),
@@ -69,8 +75,8 @@ class FallbackLLM:
                         system=system,
                         user=user,
                     )
-                if name == "deepseek":
-                    return await self._openai_compatible(
+                elif name == "deepseek":
+                    result = await self._openai_compatible(
                         provider="deepseek",
                         api_key=_env("DEEPSEEK_API_KEY"),
                         base_url=_env("DEEPSEEK_API_BASE", "https://api.deepseek.com"),
@@ -78,12 +84,42 @@ class FallbackLLM:
                         system=system,
                         user=user,
                     )
-                errors.append(f"{name}:unknown_provider")
+                else:
+                    errors.append(f"{name}:unknown_provider")
+                    attempts.append(
+                        {
+                            "provider": name,
+                            "elapsed_ms": round((time.perf_counter() - attempt_started) * 1000, 1),
+                            "ok": False,
+                            "error": "unknown_provider",
+                        }
+                    )
+                    continue
+                attempts.append(
+                    {
+                        "provider": result.provider,
+                        "elapsed_ms": round((time.perf_counter() - attempt_started) * 1000, 1),
+                        "ok": True,
+                    }
+                )
+                result.elapsed_ms = round((time.perf_counter() - started) * 1000, 1)
+                result.attempts = attempts
+                return result
             except Exception as exc:  # noqa: BLE001
                 msg = f"{name}:{type(exc).__name__}:{exc}"
                 logger.warning("LLM provider failed: %s", msg)
                 errors.append(msg)
-        raise RuntimeError("all_llm_providers_failed:" + " | ".join(errors))
+                attempts.append(
+                    {
+                        "provider": name,
+                        "elapsed_ms": round((time.perf_counter() - attempt_started) * 1000, 1),
+                        "ok": False,
+                        "error": type(exc).__name__,
+                    }
+                )
+        failure = RuntimeError("all_llm_providers_failed:" + " | ".join(errors))
+        failure.llm_attempts = attempts  # type: ignore[attr-defined]
+        raise failure
 
     async def _openai_compatible(
         self,

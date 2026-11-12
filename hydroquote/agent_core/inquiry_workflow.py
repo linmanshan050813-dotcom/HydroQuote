@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import time
 import uuid
 from typing import Any, Optional
 
@@ -109,6 +110,8 @@ class InquiryAgentAdapter:
         inquiry = extract_inquiry_from_text(raw_text)
 
         # Authoritative LLM path with provider fallback
+        llm_started = time.perf_counter()
+        llm_attempts: list[dict[str, Any]] = []
         try:
             result = await self.llm.complete(
                 INQUIRY_EXTRACT_SYSTEM,
@@ -118,10 +121,13 @@ class InquiryAgentAdapter:
             inquiry = _merge_inquiry(inquiry, overlay)
             backend = f"llm:{result.provider}"
             llm_provider = result.provider
+            llm_attempts = list(result.attempts or [])
             invoked = True
         except Exception as exc:  # noqa: BLE001
             logger.warning("LLM extract unavailable, regex-only: %s", exc)
             backend = "deterministic_fallback"
+            llm_attempts = list(getattr(exc, "llm_attempts", None) or [])
+        llm_elapsed_ms = round((time.perf_counter() - llm_started) * 1000, 1)
 
         inquiry = normalize_units_config(inquiry)
         missing = missing_required_fields(inquiry)
@@ -134,4 +140,6 @@ class InquiryAgentAdapter:
             "agent_core_invoked": invoked or bool(self.agent),
             "agent_core_backend": backend,
             "llm_provider": llm_provider,
+            "llm_elapsed_ms": llm_elapsed_ms,
+            "llm_attempts": llm_attempts,
         }

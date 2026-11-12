@@ -37,3 +37,4 @@ class HydroQuoteState(TypedDict, total=False):
     error: Optional[str]
     swarm_called: bool
     agent_core_invoked: bool
+    latency: dict

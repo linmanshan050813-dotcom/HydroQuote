@@ -358,6 +358,7 @@ class QuotationApplication:
             out["review_reasons"] = cost.get("review_reasons")
             out["human_review"] = data.get("human_review")
             out["trace_events"] = [t.get("event") for t in (data.get("trace") or [])]
+            out["latency"] = data.get("latency")
             # Still strip raw internal cost totals from default reviewer export unless admin
             if role == "admin":
                 out["internal_cost_usd"] = cost.get("internal_cost")
